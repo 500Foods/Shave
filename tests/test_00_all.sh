@@ -140,20 +140,18 @@ update_readme_with_results() {
             {
                 echo "$line"
                 echo ""
-                echo "| Status | Time | Test | Tests | Pass | Fail | Summary |"
-                echo "| ------ | ---- | ---- | ----- | ---- | ---- | ------- |"
+                echo "| Status | Time | Test | Tests | Pass | Fail |"
+                echo "| ------ | ---- | ---- | ----- | ---- | ---- |"
                 
                 # Add individual test results
                 for i in "${!TEST_NUMBERS[@]}"; do
                     local status="✅"
-                    local summary="Test completed without errors"
                     if [ "${TEST_FAILED[$i]}" -gt 0 ]; then
                         status="❌"
-                        summary="Test failed with errors"
                     fi
                     local time_formatted
                     time_formatted=$(format_time_duration "${TEST_ELAPSED[$i]}")
-                    echo "| $status | $time_formatted | ${TEST_NUMBERS[$i]}_$(echo "${TEST_NAMES[$i]}" | tr ' ' '_' | tr '[:upper:]' '[:lower:]') | ${TEST_SUBTESTS[$i]} | ${TEST_PASSED[$i]} | ${TEST_FAILED[$i]} | $summary |"
+                    echo "| $status | $time_formatted | ${TEST_NUMBERS[$i]}_$(echo "${TEST_NAMES[$i]}" | tr ' ' '_' | tr '[:upper:]' '[:lower:]') | ${TEST_SUBTESTS[$i]} | ${TEST_PASSED[$i]} | ${TEST_FAILED[$i]} |"
                 done
                 echo ""
             } >> "$temp_readme"
