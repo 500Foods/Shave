@@ -22,9 +22,9 @@ To run the tests for Shave, follow these steps:
 
 Below is a list of the primary test scripts available in the Shave project. Each script focuses on specific aspects of the project or its documentation.
 
-- **test_00_all.sh**: A master test script that likely runs a full suite of tests across the Shave project. This is the primary entry point for running all tests.
-- **test_90_check_links.sh**: A specialized test script focused on validating links within the project's Markdown files, ensuring documentation integrity.
-- **test_99_codebase.sh**: A test script that appears to analyze or validate the codebase, potentially checking for coding standards or other metrics.
+- **test_00_all.sh**: A master test script that likely runs a full suite of tests across the Shave project. This is the primary entry point for running all tests. [Test 00 Documentation](docs/test_00_all.md)
+- **test_90_check_links.sh**: A specialized test script focused on validating links within the project's Markdown files, ensuring documentation integrity. [Test 90 Documentation](docs/test_90_check_links.md)
+- **test_99_codebase.sh**: A test script that appears to analyze or validate the codebase, potentially checking for coding standards or other metrics. [Test 99 Documentation](docs/test_99_codebase.md)
 
 ## Table Tests
 
@@ -46,6 +46,8 @@ The `lib/` directory contains utility scripts that support the testing framework
 - **log_output.sh**: Handles logging and output formatting for test results.
 - **network_utils.sh**: Provides network-related utilities for tests that may require connectivity.
 - **tables.sh**: A library for generating and formatting tables, extensively tested by the scripts in `lib/tables-tests/`.
+
+For a detailed overview of these libraries, refer to the [Libraries Documentation](docs/LIBRARIES.md).
 
 ## Test Results
 

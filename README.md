@@ -7,6 +7,7 @@ This is the very start of a Bash-to-C transpiler. Why? Well, lots of bash script
 - [Requirements](./docs/REQUIREMENTS.md)
 - [Releases](./releases/RELEASES.md)
 - [Sitemap](./SITEMAP.md)
+- [Tests](./tests/README.md)
 
 ## Additional Notes
 
@@ -18,7 +19,7 @@ If you find this work interesting, helpful, or valuable, or that it has saved yo
 
 ## Latest Test Results
 
-Generated on: Sat Jul  5 15:22:42 PDT 2025
+Generated on: Sat Jul  5 15:40:10 PDT 2025
 
 ### Summary
 
@@ -31,30 +32,30 @@ Generated on: Sat Jul  5 15:22:42 PDT 2025
 | Total Subtests | 14 |
 | Passed Subtests | 14 |
 | Failed Subtests | 0 |
-| Elapsed Time | 00:00:05.595 |
-| Running Time | 00:00:07.559 |
+| Elapsed Time | 00:00:06.024 |
+| Running Time | 00:00:08.818 |
 
 ### Individual Test Results
 
 | Status | Time | Test | Tests | Pass | Fail | Summary |
 | ------ | ---- | ---- | ----- | ---- | ---- | ------- |
-| ✅ | 00:00:02.275 | 90_markdown_links_check | 4 | 4 | 0 | Test completed without errors |
-| ✅ | 00:00:05.284 | 99_static_codebase_analysis | 10 | 10 | 0 | Test completed without errors |
+| ✅ | 00:00:03.106 | 90_markdown_links_check | 4 | 4 | 0 | Test completed without errors |
+| ✅ | 00:00:05.712 | 99_static_codebase_analysis | 10 | 10 | 0 | Test completed without errors |
 
 ## Repository Information
 
-Generated via cloc: Sat Jul  5 15:22:42 PDT 2025
+Generated via cloc: Sat Jul  5 15:40:10 PDT 2025
 
 ```cloc
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
 Bourne Shell                    28            960           1013           8523
-Markdown                         7            130             45            248
-YAML                             2              8             13             37
+Markdown                        21           1655             45           4143
+YAML                             1              0              0              2
 -------------------------------------------------------------------------------
-SUM:                            37           1098           1071           8808
+SUM:                            50           2615           1058          12668
 -------------------------------------------------------------------------------
 
-CodeDoc: 34.4    CodeComment: 8.4
+CodeDoc: 2.1    CodeComment: 8.4
 ```
