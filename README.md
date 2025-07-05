@@ -16,15 +16,15 @@ While this project is currently under active development, feel free to give it a
 [![Count Lines of Code](https://github.com/500Foods/Template/actions/workflows/main.yml/badge.svg)](https://github.com/500Foods/Shave/actions/workflows/main.yml)
 <!--CLOC-START -->
 ```cloc
-Last updated at 2025-07-05 21:27:56 UTC
+Last updated at 2025-07-05 21:52:07 UTC
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
 Bourne Shell                     6             68            153            564
-Markdown                         5             43              2             85
+Markdown                         5             92             47            173
 YAML                             2              8             13             37
 -------------------------------------------------------------------------------
-SUM:                            13            119            168            686
+SUM:                            13            168            213            774
 -------------------------------------------------------------------------------
 4 Files were skipped (duplicate, binary, or without source code):
   gitattributes: 1
