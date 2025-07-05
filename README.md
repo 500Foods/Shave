@@ -4,8 +4,8 @@ This is the very start of a Bash-to-C transpiler. Why? Well, lots of bash script
 
 ## Table of Contents
 
-- [Releases](./docs/RELEASES.md)
 - [Requirements](./docs/REQUIREMENTS.md)
+- [Releases](./releases/RELEASES.md)
 
 ## Additional Notes
 
