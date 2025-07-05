@@ -4,6 +4,8 @@
 # Source the output handling script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # shellcheck source=./shave-output.sh
+# shellcheck disable=SC1091
+# Note: shellcheck may report SC1091 as the file path is dynamically determined
 . "$SCRIPT_DIR/shave-output.sh"
 
 # Function to parse Bash script and generate C code snippet

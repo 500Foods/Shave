@@ -2,6 +2,12 @@
 
 # shave-output.sh - A script to handle console output with formatted messages
 
+# Function to format a number with thousands separators
+# Usage: format_number <number>
+format_number() {
+  echo "$1" | sed -E ':a;s/([0-9]+)([0-9]{3})/\1,\2/;ta'
+}
+
 # ANSI Color Codes
 RESET_COLOR="\033[0m"
 INFO_COLOR="\033[1;36m"  # Cyan
@@ -11,6 +17,7 @@ PASS_COLOR="\033[1;32m"  # Green
 DONE_COLOR="\033[1;33m"  # Yellow
 STEP_COLOR="\033[1;35m"  # Magenta
 INIT_COLOR="\033[1;33m"  # Yellow
+FILE_COLOR="\033[1;33m"  # Yellow
 
 # Icons for different log levels
 INFO_ICON="${INFO_COLOR}\U2587\U2587"
@@ -20,6 +27,7 @@ PASS_ICON="${PASS_COLOR}\U2587\U2587"
 DONE_ICON="${DONE_COLOR}\U2587\U2587"
 STEP_ICON="${STEP_COLOR}\U2587\U2587"
 INIT_ICON="${INIT_COLOR}\U2587\U2587"
+FILE_ICON="${FILE_COLOR}\U2587\U2587"
 
 # Labels for different log levels
 INFO_LABEL="INFO"
@@ -29,6 +37,7 @@ PASS_LABEL="PASS"
 DONE_LABEL="DONE"
 STEP_LABEL="STEP"
 INIT_LABEL="INIT"
+FILE_LABEL="FILE"
 
 
 # Function to convert a full path to a relative path if not in /tmp/
@@ -125,7 +134,7 @@ log_output() {
   fi
 
   # Increment step counters
-  if [ "$level" == "step" ] || [ "$level" == "init" ]; then
+  if [ "$level" == "step" ] || [ "$level" == "init" ] || [ "$level" == "file" ]; then
     MAJOR_STEP=$((MAJOR_STEP + 1))
     MINOR_STEP=0
   else
@@ -172,6 +181,11 @@ log_output() {
       icon=$INIT_ICON
       label=$INIT_LABEL
       ;;
+    "file")
+      color=$FILE_COLOR
+      icon=$FILE_ICON
+      label=$FILE_LABEL
+      ;;
     *)
       color=$RESET_COLOR
       icon="?"
@@ -179,7 +193,7 @@ log_output() {
       ;;
   esac
 
-  if [ "$level" == "step" ]; then
+  if [ "$level" == "step" ] || [ "$level" == "file" ]; then
     echo -e "${color}  $step_counter   $elapsed_time   ${icon} ${label}   ${processed_message}${RESET_COLOR}"
   else
     echo -e "  $step_counter   $elapsed_time   ${icon} ${color}${label}${RESET_COLOR}   ${processed_message}"
