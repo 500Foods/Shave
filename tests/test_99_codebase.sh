@@ -161,7 +161,7 @@ display_linting_info() {
     print_message "For details, see tests/README.md and .lintignore files."
 }
 
-# Subtest 1: Run CMake cleanish target for the Hydrogen project
+# Subtest 1: Run CMake cleanish target 
 next_subtest
 print_subtest "CMake Clean Build Artifacts"
 
@@ -170,7 +170,7 @@ print_message "Detected $CORES CPU cores for parallel processing"
 
 display_linting_info
 
-print_message "Running comprehensive build cleanup for Hydrogen Project"
+print_message "Running comprehensive build cleanup"
 
 if [ -d "build" ]; then
     TEMP_LOG="$RESULTS_DIR/cmake_clean_hydrogen_${TIMESTAMP}.log"

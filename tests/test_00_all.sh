@@ -328,8 +328,6 @@ perform_cleanup() {
         "$SCRIPT_DIR/logs"
         "$SCRIPT_DIR/results"
         "$SCRIPT_DIR/diagnostics"
-        "$SCRIPT_DIR/../build"
-        "$SCRIPT_DIR/../build_unity_tests"
     )
     
     # Remove directories and their contents silently
@@ -339,19 +337,6 @@ perform_cleanup() {
         fi
     done
     
-    # Remove hydrogen executables silently
-    local hydrogen_exe="$SCRIPT_DIR/../hydrogen"
-    if [ -f "$hydrogen_exe" ]; then
-        rm -f "$hydrogen_exe" > /dev/null 2>&1
-    fi
-    
-    # Run CMake clean if CMakeLists.txt exists, silently
-    local cmake_dir="$SCRIPT_DIR/../cmake"
-    if [ -f "$cmake_dir/CMakeLists.txt" ]; then
-        cd "$cmake_dir" > /dev/null 2>&1 || return 1
-        cmake --build . --target clean > /dev/null 2>&1
-        cd "$SCRIPT_DIR" > /dev/null 2>&1 || return 1
-    fi
 }
 
 # Get start time
