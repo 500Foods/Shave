@@ -50,7 +50,8 @@ process() {
     # If this is the initial script (depth 0), generate the C boilerplate after validation
     if [[ "$recursion_depth" -eq 0 ]]; then
         log_output "step" "Generating C Boilerplate"
-        local input_file_full_path=$(realpath "$input_script" 2>/dev/null || readlink -f "$input_script" 2>/dev/null)
+        local input_file_full_path
+    input_file_full_path=$(realpath "$input_script" 2>/dev/null || readlink -f "$input_script" 2>/dev/null)
         generate_c_boilerplate "$c_source_file" "$input_file_full_path" "$input_script" "${file_stats[size]}" "${file_stats[lines]}" "${file_stats[timestamp]}" "$SHAVE_SCRIPT_NAME" "$SHAVE_SCRIPT_VERSION"
     fi
     
@@ -65,7 +66,9 @@ process() {
     
     # Generate CST
     log_output "step" "Generating Concrete Syntax Tree (CST) for '$input_script'"
-    local -a cst_data
+    # shellcheck disable=SC2034
+    # Justification: Variable kept for compatibility, appears unused to shellcheck
+    local -a cst_data  # Unused but kept for compatibility
     if ! generate_cst "$input_script" cst_data; then
         log_output "warn" "Failed to generate CST for '$input_script'. Proceeding with content only."
     else
@@ -78,7 +81,9 @@ process() {
     
     # Combine content and CST
     log_output "step" "Correlating CST and Script data for '$input_script'"
-    local -A combined_data
+    # shellcheck disable=SC2034
+    # Justification: Variable kept for compatibility, appears unused to shellcheck
+    local -A combined_data  # Unused but kept for compatibility
     if ! combine_content_cst "script_content" "cst_data" "combined_data"; then
         log_output "fail" "Failed to correlate CST and script data for '$input_script'."
         return 1
@@ -92,14 +97,16 @@ process() {
     # Generate C code from combined data
     log_output "step" "Generating C code for '$input_script'"
     # Create a temporary file for the generated code
-    local temp_code=$(mktemp /tmp/shave-code.XXXXXX)
+    local temp_code
+    temp_code=$(mktemp /tmp/shave-code.XXXXXX)
     {
         echo "    // Generated content from $input_script"
         local i
         for ((i=0; i<${#script_content[@]}; i++)); do
             local line="${script_content[$i]}"
             # Escape special characters in the line for C string
-            local escaped_line=$(printf '%s\n' "$line" | sed 's/[\/&]/\\&/g' | sed 's/"/\\"/g')
+            local escaped_line
+            escaped_line=$(printf '%s\n' "$line" | sed 's/[\/&]/\\&/g' | sed 's/"/\\"/g')
             printf "    printf(\"%%s\\\\n\", \"%s\");\n" "$escaped_line"
         done
     } > "$temp_code"
@@ -134,11 +141,13 @@ process() {
             fi
             # Check if it's a relative path
             if [[ ! "$sourced_path" =~ ^/ ]]; then
-                local base_dir=$(dirname "$input_script")
-                sourced_path="$base_dir/$sourced_path"
+                local base_dir
+                base_dir=$(dirname "$input_script")
+                sourced_path="${base_dir}/${sourced_path}"
             fi
             # Attempt to resolve the path to an absolute path
-            local resolved_path=$(realpath "$sourced_path" 2>/dev/null || readlink -f "$sourced_path" 2>/dev/null)
+            local resolved_path
+            resolved_path=$(realpath "$sourced_path" 2>/dev/null || readlink -f "$sourced_path" 2>/dev/null)
             if [[ -n "$resolved_path" ]]; then
                 sourced_path="$resolved_path"
             fi

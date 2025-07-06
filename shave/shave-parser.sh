@@ -53,7 +53,7 @@ generate_cst() {
         local tree_sitter_output
         tree_sitter_output=$(tree-sitter parse "$input_script" 2> /tmp/shave-tree-sitter-error.log)
         local tree_sitter_status=$?
-        if [ $tree_sitter_status -eq 0 ]; then
+        if (( tree_sitter_status == 0 )); then
             local parse_line_count
             parse_line_count=$(echo "$tree_sitter_output" | wc -l | awk '{print $1}')
             # Parse CST output into a regular array
@@ -62,14 +62,15 @@ generate_cst() {
                 # Match lines with optional labels (like "name:" or "argument:") followed by node syntax
                 if [[ "$line" =~ ^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*:[[:space:]]*)??\(([a-zA-Z_][a-zA-Z0-9_]*)\ \[([0-9]+),\ ([0-9]+)\]\ -\ \[([0-9]+),\ ([0-9]+)\] ]]; then
                     # Store only the original tree-sitter output with proper indentation
-                    cst_array[$node_count]="$line"
+                    cst_array[node_count]="$line"
                     ((node_count++))
                 fi
             done
             log_output "info" "tree-sitter parsed '$input_script': $(format_number "$node_count") CST nodes from $(format_number "$parse_line_count") lines of output"
             # If in debug mode, save CST data to a temporary file
             if [[ "$DEBUG_MODE" == "true" ]]; then
-                local temp_cst_file=$(mktemp /tmp/shave-cst.XXXXXX.cst)
+                local temp_cst_file
+                temp_cst_file=$(mktemp /tmp/shave-cst.XXXXXX.cst)
                 {
                     echo "CST Data Array:"
                     echo "---------------"
@@ -79,6 +80,8 @@ generate_cst() {
                     done
                 } > "$temp_cst_file"
                 # Store the filename in a global variable to be accessed by the calling script
+                # shellcheck disable=SC2034
+                # Justification: Variable kept for compatibility with calling scripts
                 CST_DEBUG_FILE="$temp_cst_file"
                 # Log will be handled in the calling script to avoid duplicates
             fi
@@ -90,6 +93,8 @@ generate_cst() {
     fi
     
     # Assign the local array to the nameref to return it
+    # shellcheck disable=SC2034
+    # Justification: Nameref used to return array to caller, appears unused to shellcheck
     cst_array_ref=("${cst_array[@]}")
     return 0
 }

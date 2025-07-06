@@ -36,13 +36,16 @@ validate_script() {
     done
     
     # Gather file statistics
-    local size=$(wc -c < "$input_script" | awk '{print $1}')
-    local lines=$(wc -l < "$input_script" | awk '{print $1}')
+    local size
+    size=$(wc -c < "$input_script" | awk '{print $1}')
+    local lines
+    lines=$(wc -l < "$input_script" | awk '{print $1}')
     local timestamp
     if stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S %Z" "$input_script" >/dev/null 2>&1; then
         timestamp=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S %Z" "$input_script")
     else
-        local raw_timestamp=$(stat -c %y "$input_script" | cut -d. -f1)
+        local raw_timestamp
+        raw_timestamp=$(stat -c %y "$input_script" | cut -d. -f1)
         timestamp="$raw_timestamp $(date +%Z)"
     fi
     log_output "info" "$input_script is $(format_number "$size") bytes ($(format_number "$lines") lines)"

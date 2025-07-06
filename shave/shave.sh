@@ -212,7 +212,9 @@ fi
 # Create a temporary C source file
 temp_c_file=$(mktemp /tmp/shave.XXXXXX.c)
 # Get fully qualified path for input file
-input_file_full_path=$(realpath "$input_file" 2>/dev/null || readlink -f "$input_file" 2>/dev/null)
+# shellcheck disable=SC2034
+# Justification: Variable kept for compatibility, appears unused to shellcheck
+input_file_full_path=$(realpath "$input_file" 2>/dev/null || readlink -f "$input_file" 2>/dev/null)  # Unused but kept for compatibility
 
 # Transpiler logic
 

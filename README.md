@@ -4,10 +4,11 @@ This is the very start of a Bash-to-C transpiler. Why? Well, lots of bash script
 
 ## Table of Contents
 
-- [Requirements](./docs/REQUIREMENTS.md)
-- [Releases](./releases/RELEASES.md)
-- [Sitemap](./SITEMAP.md)
-- [Tests](./tests/README.md)
+- [Recipe for Success](./RECIPE.md) - Guidelines for working on the Shave project, including shellcheck issue handling.
+- [Requirements](./docs/REQUIREMENTS.md) - Details the tools and environment needed to run Shave.
+- [Releases](./releases/RELEASES.md) - Chronological summary of all Shave releases.
+- [Sitemap](./SITEMAP.md) - Directory of all Markdown files within the Shave project.
+- [Tests](./tests/README.md) - Instructions on running tests and overview of test suites.
 
 ## Additional Notes
 
@@ -19,7 +20,7 @@ If you find this work interesting, helpful, or valuable, or that it has saved yo
 
 ## Latest Test Results
 
-Generated on: Sun Jul  6 03:34:00 PDT 2025
+Generated on: Sun Jul  6 08:22:29 PDT 2025
 
 ### Summary
 
@@ -32,30 +33,30 @@ Generated on: Sun Jul  6 03:34:00 PDT 2025
 | Total Subtests | 14 |
 | Passed Subtests | 14 |
 | Failed Subtests | 0 |
-| Elapsed Time | 00:00:05.910 |
-| Running Time | 00:00:08.654 |
+| Elapsed Time | 00:00:06.207 |
+| Running Time | 00:00:08.979 |
 
 ### Individual Test Results
 
 | Status | Time | Test | Tests | Pass | Fail |
 | ------ | ---- | ---- | ----- | ---- | ---- |
-| ✅ | 00:00:03.056 | 90_markdown_links_check | 4 | 4 | 0 |
-| ✅ | 00:00:05.598 | 99_static_codebase_analysis | 10 | 10 | 0 |
+| ✅ | 00:00:03.087 | 90_markdown_links_check | 4 | 4 | 0 |
+| ✅ | 00:00:05.892 | 99_static_codebase_analysis | 10 | 10 | 0 |
 
 ## Repository Information
 
-Generated via cloc: Sun Jul  6 03:34:00 PDT 2025
+Generated via cloc: Sun Jul  6 08:22:29 PDT 2025
 
 ```cloc
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Bourne Shell                    28            959           1011           8509
-Markdown                        21           1655             45           4143
+Bourne Shell                    33            998           1127           8767
+Markdown                        23           1697             45           4213
 YAML                             1              0              0              2
 -------------------------------------------------------------------------------
-SUM:                            50           2614           1056          12654
+SUM:                            57           2695           1172          12982
 -------------------------------------------------------------------------------
 
-CodeDoc: 2.1    CodeComment: 8.4
+CodeDoc: 2.1    CodeComment: 7.8
 ```

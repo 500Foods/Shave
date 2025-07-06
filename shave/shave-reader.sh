@@ -25,7 +25,8 @@ read_script_content() {
     log_output "info" "Read content from '$input_script' into array (${#content_array[@]} lines)."
     # If in debug mode, save the content to a temporary file with .txt extension, showing array structure
     if [[ "$DEBUG_MODE" == "true" ]]; then
-        local temp_file=$(mktemp /tmp/shave-script.XXXXXX.txt)
+        local temp_file
+        temp_file=$(mktemp /tmp/shave-script.XXXXXX.txt)
         {
             echo "Script Content Array:"
             echo "--------------------"

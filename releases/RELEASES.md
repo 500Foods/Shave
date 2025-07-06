@@ -58,3 +58,4 @@ Remember:
 ### July 2025
 
 - **2025-07-05** - [Version 0.1.0: Initial Shave transpiler setup](2025-07/2025-07-05.md) - First release with basic Bash-to-C transpiler structure and command-line parsing
+- **2025-07-06** - [Version 0.1.1: Enhancements in processing and parsing](2025-07/2025-07-06.md) - Updates to processing, parsing, combining, and validation components
