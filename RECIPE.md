@@ -78,4 +78,3 @@ my_ref=("some" "values")  # Assignment may trigger warning
 ```
 
 This placement ensures that shellcheck recognizes the exception at the point where it reports the issue.
-
