@@ -3,9 +3,8 @@
 
 # Source the output handling script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# shellcheck source=./shave-output.sh
-# shellcheck disable=SC1091
-# Note: shellcheck may report SC1091 as the file path is dynamically determined
+# shellcheck source=./shave-output.sh  # Essential for logging and output handling
+# shellcheck disable=SC1091  # File path is dynamically determined at runtime
 . "$SCRIPT_DIR/shave-output.sh"
 
 # Function to validate a script for syntax and check if already processed
@@ -15,7 +14,7 @@ validate_script() {
     
     # Check if input file exists
     if [[ ! -f "$input_script" ]]; then
-        log_output "fail" "Input script '$input_script' not found."
+        log_output "fail" "Input script '$input_script' not found"
         return 1
     fi
     
@@ -23,14 +22,14 @@ validate_script() {
     local absolute_path
     absolute_path=$(realpath "$input_script" 2>/dev/null || readlink -f "$input_script" 2>/dev/null)
     if [[ -z "$absolute_path" ]]; then
-        log_output "fail" "Could not determine absolute path for '$input_script'."
+        log_output "fail" "Could not determine absolute path for '$input_script'"
         return 1
     fi
     
     # Check if the script is already in the hash table
     for key in "${!HASH_TABLE[@]}"; do
         if [[ "${HASH_TABLE[$key]}" == "$absolute_path" ]]; then
-            log_output "info" "Script '$input_script' already processed (hash: $key). Skipping."
+            log_output "info" "Script '$input_script' already processed (hash: $key). Skipping"
             return 1
         fi
     done
@@ -53,7 +52,7 @@ validate_script() {
     
     # Validate syntax using bash -n
     if ! bash -n "$input_script"; then
-        log_output "fail" "Syntax validation failed for '$input_script'."
+        log_output "fail" "Syntax validation failed for '$input_script'"
         return 1
     fi
     
@@ -61,7 +60,7 @@ validate_script() {
     local hash_value
     hash_value=$(hash "$absolute_path" "source")
     HASH_TABLE["$hash_value"]="$absolute_path"
-    log_output "info" "Validated script '$input_script' with hash '$hash_value'."
+    log_output "info" "Validated script '$input_script'"
     log_output "info" "Hash for script '$input_script': $hash_value"
     
     # Populate the provided associative array with statistics

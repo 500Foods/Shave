@@ -15,13 +15,13 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Source the table rendering libraries for the summary
-# shellcheck source=tests/lib/tables.sh
+# shellcheck source=tests/lib/tables.sh  # Required for rendering test result tables
 source "$SCRIPT_DIR/lib/tables.sh"
-# shellcheck source=tests/lib/log_output.sh
+# shellcheck source=tests/lib/log_output.sh  # Needed for logging test output consistently
 source "$SCRIPT_DIR/lib/log_output.sh"
-# shellcheck source=tests/lib/framework.sh
+# shellcheck source=tests/lib/framework.sh  # Provides core test framework functions
 source "$SCRIPT_DIR/lib/framework.sh"
-# shellcheck source=tests/lib/cloc.sh
+# shellcheck source=tests/lib/cloc.sh  # Used for code line count analysis in summary
 source "$SCRIPT_DIR/lib/cloc.sh"
 
 # Set flag to indicate tables.sh is sourced for performance optimization

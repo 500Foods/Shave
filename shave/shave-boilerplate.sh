@@ -3,15 +3,15 @@
 
 # Source the output handling script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# shellcheck source=./shave-output.sh
-# shellcheck disable=SC1091
+# shellcheck source=./shave-output.sh  # Essential for logging and output handling
+# shellcheck disable=SC1091  # File path is dynamically determined at runtime
 . "$SCRIPT_DIR/shave-output.sh"
 
 # Function to generate C boilerplate code
 generate_c_boilerplate() {
     local output_file="$1"
     local source_file="$2"
-    # shellcheck disable=SC2034
+    # shellcheck disable=SC2034  # Variable kept for compatibility, appears unused to shellcheck
     local source_path="$3"  # Reserved for future use
     local source_size_bytes="$4"
     local source_lines="$5"

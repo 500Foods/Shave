@@ -13,19 +13,19 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Source the new modular test libraries with guard clauses
 if [[ -z "$TABLES_SH_GUARD" ]] || ! command -v tables_render_from_json >/dev/null 2>&1; then
-# shellcheck source=tests/lib/tables.sh
+# shellcheck source=tests/lib/tables.sh  # Required for rendering test result tables
     source "$SCRIPT_DIR/lib/tables.sh"
     export TABLES_SOURCED=true
 fi
 
 if [[ -z "$LOG_OUTPUT_SH_GUARD" ]]; then
-# shellcheck source=tests/lib/log_output.sh
+# shellcheck source=tests/lib/log_output.sh  # Needed for consistent logging of test output
     source "$SCRIPT_DIR/lib/log_output.sh"
 fi
 
-# shellcheck source=tests/lib/file_utils.sh
+# shellcheck source=tests/lib/file_utils.sh  # Provides utility functions for file operations
 source "$SCRIPT_DIR/lib/file_utils.sh"
-# shellcheck source=tests/lib/framework.sh
+# shellcheck source=tests/lib/framework.sh  # Core framework functions for test execution
 source "$SCRIPT_DIR/lib/framework.sh"
 
 # Test configuration

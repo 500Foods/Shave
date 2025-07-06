@@ -1,14 +1,24 @@
 #!/bin/bash
-# Shave: A Bash-to-C transpiler for converting Bash scripts to C executables.
+
+# Shave: A Bash-to-C Transpiler
+# ===============================
+# This script converts Bash scripts into C executables, enabling portability
+# and performance improvements by compiling Bash logic into native code.
 
 # CHANGELOG
+# =========
+# Version 1.0.0 - 2025-07-06 - First stable release with core functionality.
 # Version 0.1.0 - 2025-07-05 - Initial setup of Shave transpiler.
 
-# Script metadata
+# Script Metadata
+# ===============
+# Defines the name and version of the Shave script for consistent identification.
 SHAVE_SCRIPT_NAME=$(basename "$0")
-SHAVE_SCRIPT_VERSION="0.1.0"
+SHAVE_SCRIPT_VERSION="1.0.0"
 
-# Display help information
+# Display Help Information
+# =========================
+# Shows usage instructions and options for the Shave transpiler.
 show_help() {
     echo "Usage: $SHAVE_SCRIPT_NAME [options] <input_bash_script>"
     echo "Convert a Bash script to a C executable"
@@ -28,13 +38,23 @@ show_help() {
     exit 0
 }
 
-# Set the start time at the very beginning of the script
+# Set Start Time
+# ==============
+# Records the start time of the script execution for performance tracking.
 export SHAVE_START_TIME
 SHAVE_START_TIME=$(date +%s%3N)
-# Source modular components using the script's directory
+
+# Source Modular Components
+# =========================
+# Determines the script's directory to source modular components reliably.
 SCRIPT_DIR=""
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# Check for --help or --version option early to bypass logging
+
+# Early Option Check
+# ==================
+# Checks for help or version options before initializing logging to avoid unnecessary logs.
+input_file=""
+debug_mode="false"
 for arg in "$@"; do
     if [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
         echo "$SHAVE_SCRIPT_NAME $SHAVE_SCRIPT_VERSION"
@@ -51,15 +71,24 @@ for arg in "$@"; do
         echo "$SHAVE_SCRIPT_NAME $SHAVE_SCRIPT_VERSION"
         echo "Script Timestamp: $script_timestamp"
         exit 0
+    elif [[ -z "$input_file" && "$arg" != -* ]]; then
+        input_file="$arg"
+    elif [[ "$arg" == "-d" || "$arg" == "--debug" ]]; then
+        debug_mode="true"
     fi
 done
-# Source shave-output.sh first to ensure log_output is available
-# shellcheck source=./shave-output.sh
-# shellcheck disable=SC1091
-# Note: shellcheck may report SC1091 as the file path is dynamically determined
+
+# Initialize Logging
+# ==================
+# Sources shave-output.sh first to ensure logging functionality is available.
+# shellcheck source=./shave-output.sh  # Essential for logging and output handling
+# shellcheck disable=SC1091  # File path is dynamically determined at runtime
 . "$SCRIPT_DIR/shave-output.sh"
 log_output "init" "Initializing $SHAVE_SCRIPT_NAME $SHAVE_SCRIPT_VERSION"
-# Handle script timestamp extraction for different systems (macOS vs Linux)
+
+# Script Timestamp Extraction
+# ===========================
+# Extracts the script's timestamp, handling differences between macOS and Linux systems.
 script_location="$SCRIPT_DIR/shave.sh"
 if stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S %Z" "$script_location" >/dev/null 2>&1; then
     script_timestamp=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S %Z" "$script_location")
@@ -68,17 +97,30 @@ else
     script_timestamp="$raw_timestamp $(date +%Z)"
 fi
 log_output "info" "Script Timestamp: $script_timestamp"
-log_output "step" "Sourcing scripts"
-# shellcheck source=./shave-boilerplate.sh
-# shellcheck source=./shave-compiler.sh
-# shellcheck source=./shave-parser.sh
-# shellcheck source=./shave-hash.sh
-# shellcheck source=./shave-reader.sh
-# shellcheck source=./shave-combiner.sh
-# shellcheck source=./shave-validate.sh
-# shellcheck source=./shave-process.sh
-# shellcheck disable=SC1091
-# Note: shellcheck may report SC1091 as the file paths are dynamically determined
+
+# Set Absolute Root Path
+# ======================
+# Determines the absolute path of the input file for consistent file handling.
+if [[ -n "$input_file" ]]; then
+    absolute_root_path="$(realpath "$input_file" 2>/dev/null || readlink -f "$input_file" 2>/dev/null)"
+    if [[ "$debug_mode" == "true" && -n "$absolute_root_path" ]]; then
+        log_output "info" "Absolute Root: $(dirname "$absolute_root_path")/"
+    fi
+    set_absolute_root "$absolute_root_path"
+fi
+
+log_output "step" "Sourcing Scripts"
+# ======================
+# Loads all necessary modular scripts for the transpiler's functionality.
+# shellcheck source=./shave-boilerplate.sh  # Provides boilerplate C code generation
+# shellcheck source=./shave-compiler.sh  # Handles compilation of C code
+# shellcheck source=./shave-parser.sh  # Parses Bash scripts for conversion
+# shellcheck source=./shave-hash.sh  # Manages hash generation for tracking
+# shellcheck source=./shave-reader.sh  # Reads script content into arrays
+# shellcheck source=./shave-combiner.sh  # Combines content and CST data
+# shellcheck source=./shave-validate.sh  # Validates script syntax and status
+# shellcheck source=./shave-process.sh  # Orchestrates the processing workflow
+# shellcheck disable=SC1091  # File paths are dynamically determined at runtime
 for script in "$SCRIPT_DIR/shave-boilerplate.sh" "$SCRIPT_DIR/shave-compiler.sh" "$SCRIPT_DIR/shave-parser.sh" "$SCRIPT_DIR/shave-hash.sh" "$SCRIPT_DIR/shave-reader.sh" "$SCRIPT_DIR/shave-combiner.sh" "$SCRIPT_DIR/shave-validate.sh" "$SCRIPT_DIR/shave-process.sh"; do
     if [ -f "$script" ]; then
         log_output "info" "Sourcing $script"
@@ -120,11 +162,13 @@ if ! type combine_content_cst >/dev/null 2>&1; then
 fi
 log_output "pass" "All functions sourced successfully"
 
-# Validate environment for required tools
-log_output "step" "Validating environment"
+# Environment Validation
+# ======================
+# Checks for the presence of required tools and logs their versions.
+log_output "step" "Validating Environment"
 # Check for bash
 if ! command -v bash >/dev/null 2>&1; then
-    log_output "fail" "Bash is not installed. Please install Bash to run this script."
+    log_output "fail" "Bash is not installed. Please install Bash to run this script"
     exit 1
 else
     bash_version=$(bash --version | head -1 | awk '{print $1 " " $2 " " $3 " " $4}')
@@ -132,7 +176,7 @@ else
 fi
 # Check for gcc
 if ! command -v gcc >/dev/null 2>&1; then
-    log_output "fail" "GCC is not installed. Please install GCC to compile the generated C code."
+    log_output "fail" "GCC is not installed. Please install GCC to compile the generated C code"
     exit 1
 else
     gcc_version=$(gcc --version | head -1 | awk '{print $1 " " $2 " " $3}')
@@ -140,25 +184,30 @@ else
 fi
 # Check for upx
 if ! command -v upx >/dev/null 2>&1; then
-    log_output "warn" "UPX is not installed. Compression step will be skipped."
+    log_output "warn" "UPX is not installed. Compression step will be skipped"
 else
     upx_version=$(upx --version | head -1 | awk '{print $1 " " $2}')
     log_output "pass" "UPX is installed: $upx_version"
 fi
 # Check for tree-sitter (assuming it's installed via npm)
 if ! command -v tree-sitter >/dev/null 2>&1; then
-    log_output "warn" "tree-sitter is not installed. Some parsing features may not work. Install via npm with 'npm install -g tree-sitter-cli'."
+    log_output "warn" "tree-sitter is not installed. Some parsing features may not work. Install via npm with 'npm install -g tree-sitter-cli'"
 else
     tree_sitter_version=$(tree-sitter --version | head -1 | awk '{print $1 " " $2}')
     log_output "pass" "tree-sitter is installed: $tree_sitter_version"
 fi
 log_output "pass" "Environment validation complete"
 
-# Placeholder for output filename logic
+# Output File Configuration
+# =========================
+# Initializes variables for output file naming and retention of C source files.
 output_file=""
 keep_c_file="false"
 
-# Parse command line options
+
+# Parse Command Line Options
+# ==========================
+# Processes command line arguments to configure the transpiler's behavior.
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -h|--help)
@@ -196,8 +245,11 @@ if [[ -z "$input_file" ]]; then
     exit 1
 fi
 
-# Export debug mode variable for use in other scripts
+# Export Debug Mode
+# =================
+# Makes debug mode setting available to other sourced scripts.
 export DEBUG_MODE="${debug_mode:-false}"
+
 
 # Determine default output filename if not specified
 if [[ -z "$output_file" ]]; then
@@ -212,14 +264,16 @@ fi
 # Create a temporary C source file
 temp_c_file=$(mktemp /tmp/shave.XXXXXX.c)
 # Get fully qualified path for input file
-# shellcheck disable=SC2034
-# Justification: Variable kept for compatibility, appears unused to shellcheck
+# shellcheck disable=SC2034  # Variable kept for compatibility, appears unused to shellcheck
 input_file_full_path=$(realpath "$input_file" 2>/dev/null || readlink -f "$input_file" 2>/dev/null)  # Unused but kept for compatibility
 
-# Transpiler logic
+# Transpiler Logic
+# ================
+# Core logic for processing Bash scripts into C executables.
 
-# Emit initial processing step log
-log_output "step" "Initial processing for '$input_file'"
+# Initial Processing
+# ------------------
+log_output "step" "Initial Processing for '$input_file'"
 # Process the input script and any sourced dependencies, which will handle validation, FILE log line, and boilerplate generation
 if ! process "$input_file" "$temp_c_file"; then
     log_output "fail" "Failed to process Bash script. Exiting"
@@ -227,11 +281,13 @@ if ! process "$input_file" "$temp_c_file"; then
     exit 1
 fi
 
-# Populate hash table contents as comments in the C source file
-log_output "step" "Populating hash table contents in C source"
+# Populate Hash Table in C Source
+# -------------------------------
+# Adds hash table contents as comments in the generated C source file.
+log_output "step" "Populating Hash Table Contents in C Source"
 hash_table_content=$(populate_hash_table_comments)
 if [ -z "$hash_table_content" ]; then
-    log_output "warn" "No hash table contents to add. Hash table might be empty."
+    log_output "warn" "No hash table contents to add. Hash table might be empty"
 else
     # Create a temporary file with the content to insert
     temp_content_file=$(mktemp /tmp/shave-content.XXXXXX)
@@ -244,13 +300,18 @@ else
     log_output "pass" "Hash table contents added to C source"
 fi
 
-# Compile the generated C code to executable
+# Compile to Executable
+# ---------------------
+# Compiles the generated C code into a native executable.
 log_output "step" "Compiling to Executable"
 if ! compile_c_to_executable "$temp_c_file" "$output_file" "$keep_c_file"; then
     log_output "fail" "Failed to compile C code to executable. Exiting"
     exit 1
 fi
 
+# Finalize Output
+# ---------------
+# Cleans up temporary files and logs the completion of the process.
 log_output "step" "Finalizing Output"
 if [ "$keep_c_file" == "true" ]; then
     log_output "info" "Keeping generated C source file at '$temp_c_file'"
@@ -259,7 +320,7 @@ else
     rm -f "$temp_c_file"
 fi
 if [ "$DEBUG_MODE" == "true" ]; then
-    log_output "info" "Debug mode enabled: Temporary files for CST and combined data have been logged during processing."
+    log_output "info" "Debug mode enabled: Temporary files for CST and combined data have been logged during processing"
 fi
 log_output "done" "Conversion complete. Executable created at '$output_file'"
 exit 0

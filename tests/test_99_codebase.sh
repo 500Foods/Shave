@@ -7,7 +7,8 @@
 # - Large file detection
 # - Multi-language linting validation
 #
-# VERSION HISTORY
+# CHANGELOG
+# 3.9.0 - 2025-07-06 - Added shellcheck directive justification subtest to ensure all directives have justifications
 # 3.8.0 - 2025-07-04 - Removed shellcheck suppressions and fixed underlying issues (SC2269, SC2317) per user preference
 # 3.7.0 - 2025-07-04 - Added shellcheck suppressions for SC2034, SC2086 globally to address warnings across all scripts
 # 3.6.0 - 2025-07-04 - Added shellcheck suppressions for SC2034, SC2317 to address remaining warnings in script
@@ -27,28 +28,28 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Source the new modular test libraries with guard clauses
 if [[ -z "$TABLES_SH_GUARD" ]] || ! command -v tables_render_from_json >/dev/null 2>&1; then
-# shellcheck source=tests/lib/tables.sh
+# shellcheck source=tests/lib/tables.sh  # Needed for rendering analysis result tables
     source "$SCRIPT_DIR/lib/tables.sh"
     export TABLES_SOURCED=true
 fi
 
 if [[ -z "$LOG_OUTPUT_SH_GUARD" ]]; then
-# shellcheck source=tests/lib/log_output.sh
+# shellcheck source=tests/lib/log_output.sh  # Essential for consistent logging of analysis output
     source "$SCRIPT_DIR/lib/log_output.sh"
 fi
 
-# shellcheck source=tests/lib/file_utils.sh
+# shellcheck source=tests/lib/file_utils.sh  # Provides utility functions for file operations
 source "$SCRIPT_DIR/lib/file_utils.sh"
-# shellcheck source=tests/lib/framework.sh
+# shellcheck source=tests/lib/framework.sh  # Core framework functions for test execution
 source "$SCRIPT_DIR/lib/framework.sh"
-# shellcheck source=tests/lib/cloc.sh
+# shellcheck source=tests/lib/cloc.sh  # Used for code line count analysis
 source "$SCRIPT_DIR/lib/cloc.sh"
 
 # Test configuration
 TEST_NAME="Static Codebase Analysis"
-SCRIPT_VERSION="3.8.0"
+SCRIPT_VERSION="3.9.0"
 EXIT_CODE=0
-TOTAL_SUBTESTS=10
+TOTAL_SUBTESTS=11
 PASS_COUNT=0
 RESULT_LOG=""
 
@@ -563,7 +564,7 @@ if command -v shellcheck >/dev/null 2>&1; then
         # This eliminates directory switching overhead while maintaining optimal load balancing
         # Large files (>400 lines) get processed individually
         # Medium files (100-400 lines) get processed in groups of 3-4  
-        # Small files (<100 lines) get processed in larger batches (8-12)
+        # Small files (<100 lines) get processed in larger batches (8-12 files per job)
         
         # Function to get file line count
         get_line_count() {
@@ -642,7 +643,53 @@ else
     ((PASS_COUNT++))
 fi
 
-# Subtest 7: Lint JSON files
+# Subtest 7: Check Shellcheck Directives Justification
+next_subtest
+print_subtest "Shellcheck Directives Justification Check"
+
+SHELLCHECK_DIRECTIVES_WITH_JUSTIFICATION=0
+SHELLCHECK_DIRECTIVES_WITHOUT_JUSTIFICATION=0
+WITHOUT_JUSTIFICATION_LIST=()
+
+if [ "$SHELL_COUNT" -gt 0 ]; then
+    print_message "Checking shellcheck directives in $SHELL_COUNT shell scripts..."
+    
+    for file in "${SHELL_FILES[@]}"; do
+        # Find lines with shellcheck directives
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^[[:space:]]*#[[:space:]]*shellcheck[[:space:]]+.* ]]; then
+                # Check if there's a justification comment after the directive
+                if echo "$line" | grep -q "#[[:space:]]*shellcheck[[:space:]]\+.*#[[:space:]]\+.*" ; then
+                    ((SHELLCHECK_DIRECTIVES_WITH_JUSTIFICATION++))
+                else
+                    ((SHELLCHECK_DIRECTIVES_WITHOUT_JUSTIFICATION++))
+                    WITHOUT_JUSTIFICATION_LIST+=("$file: $line")
+                fi
+            fi
+        done < "$file"
+    done
+    
+    print_message "Shellcheck Directives Summary:"
+    print_output "Directives with justification: $SHELLCHECK_DIRECTIVES_WITH_JUSTIFICATION"
+    print_output "Directives without justification: $SHELLCHECK_DIRECTIVES_WITHOUT_JUSTIFICATION"
+    
+    if [ "$SHELLCHECK_DIRECTIVES_WITHOUT_JUSTIFICATION" -gt 0 ]; then
+        print_message "Directives without justification found:"
+        for entry in "${WITHOUT_JUSTIFICATION_LIST[@]}"; do
+            print_output "  $entry"
+        done
+        print_result 1 "Found $SHELLCHECK_DIRECTIVES_WITHOUT_JUSTIFICATION directives without justification"
+        EXIT_CODE=1
+    else
+        print_result 0 "All $SHELLCHECK_DIRECTIVES_WITH_JUSTIFICATION directives have justifications"
+        ((PASS_COUNT++))
+    fi
+else
+    print_result 0 "No shell scripts to check for directives"
+    ((PASS_COUNT++))
+fi
+
+# Subtest 8: Lint JSON files
 next_subtest
 print_subtest "JSON Linting"
 
@@ -696,7 +743,7 @@ else
     ((PASS_COUNT++))
 fi
 
-# Subtest 8: Code line count analysis with cloc
+# Subtest 9: Code line count analysis with cloc
 next_subtest
 print_subtest "Code Line Count Analysis (cloc)"
 
@@ -727,7 +774,7 @@ fi
 
 rm -f "$CLOC_OUTPUT"
 
-# Subtest 9: File count summary
+# Subtest 10: File count summary
 next_subtest
 print_subtest "File Count Summary"
 
@@ -749,7 +796,7 @@ print_output "Shell scripts: $SH_FILES"
 print_result 0 "File count analysis completed"
 ((PASS_COUNT++))
 
-# Subtest 10: Save analysis results
+# Subtest 11: Save analysis results
 next_subtest
 print_subtest "Save Analysis Results"
 

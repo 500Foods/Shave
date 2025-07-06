@@ -14,14 +14,23 @@ that everything is still in good working order.
 In release/RELEASES.md you will find comprehensive instructions on how to update and otherwise manage release notes.
 Please try not to deviate from the instructions in that file.
 
+## Code Updates
+
+Whenever updating a source code file (bash script, C source, etc.) be sure to update the CHANGELOG at the top each time.
+
 ## Shellcheck
 
 If you're presented with, or otherwise encounter, shellcheck issues, please follow these instructions
 
 Please try to correct shellcheck issues by addressing the coding style rather than just adding exceptions.
 Try to address one at a time in order.
-If you do add an exception, please also include a comment as to why you feel it is justified.
+If you do add an exception, please also include an additional justification comment as to why you feel it is necessary.
 Note that exceptions need to be placed on the line immediately prior to the line being excepted.
+
+```bash
+# shellcheck source=./shave-output.sh  # Essential for logging and output handling
+# shellcheck disable=SC1091  # File path is dynamically determined at runtime
+```
 
 Often we find ourselves running through the list fixing them, only to find out after that none of them have actually been fixed.  
 Run the shellcheck command again after each to confirm that the number of outstanding issues is indeed shrinking.
@@ -68,3 +77,7 @@ my_ref=("some" "values")  # Assignment may trigger warning
 ```
 
 This placement ensures that shellcheck recognizes the exception at the point where it reports the issue.
+
+## Code Styling
+
+When adding log output messages, avoid using a trailing period at the end of the message. The period is unnecessary and can be distracting in log outputs.

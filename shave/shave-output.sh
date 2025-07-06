@@ -47,23 +47,10 @@ get_relative_path() {
   if [[ "$path" == /tmp/* ]]; then
     echo "$path"
   else
-    # Get the current working directory
-    local cwd
-    cwd="$(pwd)"
-    # Compute relative path if possible
-    if [[ "$path" == "$cwd"* ]]; then
-      echo "${path#"$cwd"/}"
+    if [[ -z "$ABSOLUTE_ROOT" ]]; then
+      echo "$path"
     else
-      # Try to compute relative path from parent directories
-      local rel_path="$path"
-      if [[ "$path" == /* ]]; then
-        local temp_rel_path
-        temp_rel_path=$(realpath --relative-to="$cwd" "$path" 2>/dev/null)
-        if [ -n "$temp_rel_path" ]; then
-          rel_path="$temp_rel_path"
-        fi
-      fi
-      echo "$rel_path"
+      echo "${path//$ABSOLUTE_ROOT/}"
     fi
   fi
 }
@@ -72,25 +59,23 @@ get_relative_path() {
 # Usage: process_message <message>
 process_message() {
   local message="$1"
-  # Use a while loop to handle multiple paths in the message
   local processed="$message"
-  local paths=()
-  IFS=' ' read -ra words <<< "$message"
-  for word in "${words[@]}"; do
-    # Check if the word looks like a path
-    if [[ "$word" == /* || "$word" == */* ]]; then
-      # Check if it's an actual file or directory
-      if [ -e "$word" ]; then
-        paths+=("$word")
-      fi
-    fi
-  done
-  for path in "${paths[@]}"; do
-    local rel_path
-    rel_path=$(get_relative_path "$path")
-    processed="${processed//$path/$rel_path}"
-  done
+  if [[ -n "$ABSOLUTE_ROOT" ]]; then
+    processed="${message//$ABSOLUTE_ROOT/}"
+  fi
   echo "$processed"
+}
+
+# Function to set the absolute root based on the script path
+# Usage: set_absolute_root <script_path>
+set_absolute_root() {
+  local script_path="$1"
+  if [[ -n "$script_path" && "$script_path" == /* ]]; then
+    ABSOLUTE_ROOT="$(dirname "$script_path")/"
+  else
+    ABSOLUTE_ROOT=""
+  fi
+  export ABSOLUTE_ROOT
 }
 
 # Function to get elapsed time since script start in SSS.ZZZ format

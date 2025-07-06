@@ -3,9 +3,8 @@
 
 # Source the output handling script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# shellcheck source=./shave-output.sh
-# shellcheck disable=SC1091
-# Note: shellcheck may report SC1091 as the file path is dynamically determined
+# shellcheck source=./shave-output.sh  # Essential for logging and output handling
+# shellcheck disable=SC1091  # File path is dynamically determined at runtime
 . "$SCRIPT_DIR/shave-output.sh"
 
 # Deprecated function - kept for reference, replaced by new modular processing
@@ -80,21 +79,19 @@ generate_cst() {
                     done
                 } > "$temp_cst_file"
                 # Store the filename in a global variable to be accessed by the calling script
-                # shellcheck disable=SC2034
-                # Justification: Variable kept for compatibility with calling scripts
+                # shellcheck disable=SC2034  # Variable kept for compatibility with calling scripts
                 CST_DEBUG_FILE="$temp_cst_file"
                 # Log will be handled in the calling script to avoid duplicates
             fi
         else
-            log_output "warn" "tree-sitter parsing failed. See errors in /tmp/shave-tree-sitter-error.log for details."
+            log_output "warn" "tree-sitter parsing failed. See errors in /tmp/shave-tree-sitter-error.log for details"
         fi
     else
-        log_output "warn" "tree-sitter is not installed. Skipping CST generation."
+        log_output "warn" "tree-sitter is not installed. Skipping CST generation"
     fi
     
     # Assign the local array to the nameref to return it
-    # shellcheck disable=SC2034
-    # Justification: Nameref used to return array to caller, appears unused to shellcheck
+    # shellcheck disable=SC2034  # Nameref used to return array to caller, appears unused to shellcheck
     cst_array_ref=("${cst_array[@]}")
     return 0
 }
