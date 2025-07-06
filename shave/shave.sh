@@ -20,6 +20,7 @@ show_help() {
     echo "                        Defaults to input script name without extension"
     echo "                        or appends '.exe' if no extension exists"
     echo "  -k, --keep            Keep the generated C source file after compilation"
+    echo "  -d, --debug           Enable debug mode: keep C source file and generate/log temporary files for CST and combined data"
     echo ""
     echo "Example:"
     echo "  $SHAVE_SCRIPT_NAME myscript.sh"
@@ -72,9 +73,13 @@ log_output "step" "Sourcing scripts"
 # shellcheck source=./shave-compiler.sh
 # shellcheck source=./shave-parser.sh
 # shellcheck source=./shave-hash.sh
+# shellcheck source=./shave-reader.sh
+# shellcheck source=./shave-combiner.sh
+# shellcheck source=./shave-validate.sh
+# shellcheck source=./shave-process.sh
 # shellcheck disable=SC1091
 # Note: shellcheck may report SC1091 as the file paths are dynamically determined
-for script in "$SCRIPT_DIR/shave-boilerplate.sh" "$SCRIPT_DIR/shave-compiler.sh" "$SCRIPT_DIR/shave-parser.sh" "$SCRIPT_DIR/shave-hash.sh"; do
+for script in "$SCRIPT_DIR/shave-boilerplate.sh" "$SCRIPT_DIR/shave-compiler.sh" "$SCRIPT_DIR/shave-parser.sh" "$SCRIPT_DIR/shave-hash.sh" "$SCRIPT_DIR/shave-reader.sh" "$SCRIPT_DIR/shave-combiner.sh" "$SCRIPT_DIR/shave-validate.sh" "$SCRIPT_DIR/shave-process.sh"; do
     if [ -f "$script" ]; then
         log_output "info" "Sourcing $script"
         . "$script"
@@ -89,12 +94,28 @@ if ! type generate_c_boilerplate >/dev/null 2>&1; then
     log_output "fail" "Function generate_c_boilerplate not found. Sourcing failed"
     exit 1
 fi
-if ! type parse_bash_to_c >/dev/null 2>&1; then
-    log_output "fail" "Function parse_bash_to_c not found. Sourcing failed"
-    exit 1
-fi
 if ! type compile_c_to_executable >/dev/null 2>&1; then
     log_output "fail" "Function compile_c_to_executable not found. Sourcing failed"
+    exit 1
+fi
+if ! type process >/dev/null 2>&1; then
+    log_output "fail" "Function process not found. Sourcing failed"
+    exit 1
+fi
+if ! type validate_script >/dev/null 2>&1; then
+    log_output "fail" "Function validate_script not found. Sourcing failed"
+    exit 1
+fi
+if ! type read_script_content >/dev/null 2>&1; then
+    log_output "fail" "Function read_script_content not found. Sourcing failed"
+    exit 1
+fi
+if ! type generate_cst >/dev/null 2>&1; then
+    log_output "fail" "Function generate_cst not found. Sourcing failed"
+    exit 1
+fi
+if ! type combine_content_cst >/dev/null 2>&1; then
+    log_output "fail" "Function combine_content_cst not found. Sourcing failed"
     exit 1
 fi
 log_output "pass" "All functions sourced successfully"
@@ -156,6 +177,11 @@ while [[ "$#" -gt 0 ]]; do
             keep_c_file="true"
             shift
             ;;
+        -d|--debug)
+            keep_c_file="true"
+            debug_mode="true"
+            shift
+            ;;
         *)
             input_file="$1"
             shift
@@ -170,6 +196,9 @@ if [[ -z "$input_file" ]]; then
     exit 1
 fi
 
+# Export debug mode variable for use in other scripts
+export DEBUG_MODE="${debug_mode:-false}"
+
 # Determine default output filename if not specified
 if [[ -z "$output_file" ]]; then
     base_name="${input_file%.*}"
@@ -180,68 +209,18 @@ if [[ -z "$output_file" ]]; then
     fi
 fi
 
-# Validate the input Bash script syntax using bash -n
-log_output "step" "Validating source script syntax"
-# Get file stats for input file
-file_size=$(wc -c < "$input_file" | awk '{print $1}')
-line_count=$(wc -l < "$input_file" | awk '{print $1}')
-# Handle timestamp extraction for different systems (macOS vs Linux)
-if stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S %Z" "$input_file" >/dev/null 2>&1; then
-    source_timestamp=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S %Z" "$input_file")
-else
-    # Use date to format with timezone if possible, or append timezone manually
-    raw_timestamp=$(stat -c %y "$input_file" | cut -d. -f1)
-    source_timestamp="$raw_timestamp $(date +%Z)"
-fi
-current_timestamp=$(date '+%Y-%m-%d %H:%M:%S %Z')
-# Output file size and timestamp on separate lines
-log_output "info" "$input_file is $(format_number "$file_size") bytes ($(format_number "$line_count") lines)"
-log_output "info" "Source Timestamp: $current_timestamp"
-if ! bash -n "$input_file"; then
-    log_output "fail" "Source script syntax validation failed. Exiting"
-    exit 1
-fi
-log_output "pass" "Source script syntax validated successfully"
-
-# Generate and display hash for the input script after validation
-SCRIPT_FILENAME="$input_file"
-HASH_VALUE=$(hash "$SCRIPT_FILENAME" "source")
-log_output "info" "Hash for script '$SCRIPT_FILENAME': $HASH_VALUE"
-# Ensure the hash is stored in the table by calling the function explicitly
-hash "$SCRIPT_FILENAME" "source" > /dev/null
-
-# Parse the input script with tree-sitter if available
-log_output "step" "Parsing Script"
-if command -v tree-sitter >/dev/null 2>&1; then
-    tree_sitter_output=$(tree-sitter parse "$input_file" 2> /tmp/shave-tree-sitter-error.log)
-    tree_sitter_status=$?
-if [ $tree_sitter_status -eq 0 ]; then
-    parse_line_count=$(echo "$tree_sitter_output" | wc -l | awk '{print $1}')
-    log_output "info" "tree-sitter parsed $input_file: $(format_number "$parse_line_count") statements"
-    log_output "pass" "Concrete Syntax Tree (CST) generated"
-else
-        log_output "warn" "tree-sitter parsing failed. See errors in /tmp/shave-tree-sitter-error.log for details."
-    fi
-else
-    log_output "warn" "tree-sitter is not installed. Skipping parsing step."
-fi
+# Create a temporary C source file
+temp_c_file=$(mktemp /tmp/shave.XXXXXX.c)
+# Get fully qualified path for input file
+input_file_full_path=$(realpath "$input_file" 2>/dev/null || readlink -f "$input_file" 2>/dev/null)
 
 # Transpiler logic
 
-# Create a temporary C source file
-temp_c_file=$(mktemp /tmp/shave.XXXXXX.c)
-
-# Generate C boilerplate
-log_output "step" "Generating C Boilerplate"
-# Get fully qualified path for input file
-input_file_full_path=$(realpath "$input_file" 2>/dev/null || readlink -f "$input_file" 2>/dev/null)
-generate_c_boilerplate "$temp_c_file" "$input_file_full_path" "$input_file" "$file_size" "$line_count" "$source_timestamp" "$SHAVE_SCRIPT_NAME" "$SHAVE_SCRIPT_VERSION"
-
-# Parse Bash script and append generated C code
-log_output "step" "Parsing Bash to C"
-log_output "file" "$input_file_full_path"
-if ! parse_bash_to_c "$input_file" "$temp_c_file"; then
-    log_output "fail" "Failed to parse Bash script. Exiting"
+# Emit initial processing step log
+log_output "step" "Initial processing for '$input_file'"
+# Process the input script and any sourced dependencies, which will handle validation, FILE log line, and boilerplate generation
+if ! process "$input_file" "$temp_c_file"; then
+    log_output "fail" "Failed to process Bash script. Exiting"
     rm -f "$temp_c_file"
     exit 1
 fi
@@ -276,6 +255,9 @@ if [ "$keep_c_file" == "true" ]; then
 else
     log_output "info" "Removing generated C source file at '$temp_c_file'"
     rm -f "$temp_c_file"
+fi
+if [ "$DEBUG_MODE" == "true" ]; then
+    log_output "info" "Debug mode enabled: Temporary files for CST and combined data have been logged during processing."
 fi
 log_output "done" "Conversion complete. Executable created at '$output_file'"
 exit 0

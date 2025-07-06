@@ -50,7 +50,7 @@ compile_c_to_executable() {
                 else
                     reduction_percent="0.0"
                 fi
-                log_output "info" "UPX compression: Before $(format_number "$size_before") bytes, After $(format_number "$size_after") bytes, Reduction $reduction_percent%, Timestamp: $(date '+%Y-%m-%d %H:%M:%S %Z')"
+                log_output "info" "UPX compression: Before $(format_number "$size_before") bytes, After $(format_number "$size_after") bytes, Reduction $reduction_percent%"
                 log_output "pass" "Successfully compressed $output_executable with UPX"
             else
                 log_output "warn" "UPX compression failed. See errors in /tmp/shave-upx-error.log for details."
