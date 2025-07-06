@@ -14,9 +14,10 @@ that everything is still in good working order.
 In release/RELEASES.md you will find comprehensive instructions on how to update and otherwise manage release notes.
 Please try not to deviate from the instructions in that file.
 
-## Code Updates
+## Coding Habits
 
-Whenever updating a source code file (bash script, C source, etc.) be sure to update the CHANGELOG at the top each time.
+- Whenever updating a source code file (bash script, C source, etc.) be sure to update the CHANGELOG at the top each time.
+- When adding log output messages, avoid using a trailing period at the end of the message. The period is unnecessary and can be distracting in log outputs.
 
 ## Shellcheck
 
@@ -78,6 +79,3 @@ my_ref=("some" "values")  # Assignment may trigger warning
 
 This placement ensures that shellcheck recognizes the exception at the point where it reports the issue.
 
-## Code Styling
-
-When adding log output messages, avoid using a trailing period at the end of the message. The period is unnecessary and can be distracting in log outputs.
