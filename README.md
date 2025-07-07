@@ -20,7 +20,7 @@ If you find this work interesting, helpful, or valuable, or that it has saved yo
 
 ## Latest Test Results
 
-Generated on: Sun Jul  6 12:14:48 PDT 2025
+Generated on: Mon Jul  7 02:22:31 PDT 2025
 
 ### Summary
 
@@ -31,31 +31,31 @@ Generated on: Sun Jul  6 12:14:48 PDT 2025
 | Failed | 0 |
 | Skipped | 0 |
 | Total Subtests | 15 |
-| Passed Subtests | 15 |
-| Failed Subtests | 0 |
-| Elapsed Time | 00:00:06.775 |
-| Running Time | 00:00:09.580 |
+| Passed Subtests | 14 |
+| Failed Subtests | 1 |
+| Elapsed Time | 00:00:06.571 |
+| Running Time | 00:00:09.393 |
 
 ### Individual Test Results
 
 | Status | Time | Test | Tests | Pass | Fail |
 | ------ | ---- | ---- | ----- | ---- | ---- |
-| ✅ | 00:00:03.151 | 90_markdown_links_check | 4 | 4 | 0 |
-| ✅ | 00:00:06.429 | 99_static_codebase_analysis | 11 | 11 | 0 |
+| ❌ | 00:00:03.130 | 90_markdown_links_check | 4 | 3 | 1 |
+| ✅ | 00:00:06.263 | 99_static_codebase_analysis | 11 | 11 | 0 |
 
 ## Repository Information
 
-Generated via cloc: Sun Jul  6 12:14:48 PDT 2025
+Generated via cloc: Mon Jul  7 02:22:31 PDT 2025
 
 ```cloc
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Bourne Shell                    33           1019           1166           8842
+Bourne Shell                    33           1023           1166           8850
 Markdown                        23           1702             45           4228
 YAML                             1              0              0              2
 -------------------------------------------------------------------------------
-SUM:                            57           2721           1211          13072
+SUM:                            57           2725           1211          13080
 -------------------------------------------------------------------------------
 
 CodeDoc: 2.1    CodeComment: 7.6
