@@ -25,6 +25,7 @@ build_unity_tests/*
 tests/logs/*
 tests/results/*
 tests/diagnostics/*
+tests/build/*
 
 # Unity test framework files
 tests/unity/framework/*

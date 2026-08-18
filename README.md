@@ -8,7 +8,7 @@ This is the very start of a Bash-to-C transpiler. Why? Well, lots of bash script
 - [Requirements](./docs/REQUIREMENTS.md) - Details the tools and environment needed to run Shave.
 - [Releases](./releases/RELEASES.md) - Chronological summary of all Shave releases.
 - [Sitemap](./SITEMAP.md) - Directory of all Markdown files within the Shave project.
-- [Tests](./tests/README.md) - Instructions on running tests and overview of test suites.
+- [Testing](./TESTING.md) - How to run and add tests with `./tests/run-tests.sh`.
 
 ## Additional Notes
 

@@ -3,6 +3,7 @@
 The Shave project, a Bash-to-C transpiler, requires the following tools and environment to function properly:
 
 - **Bash**: The Shave transpiler is written in Bash and requires a Unix-like shell environment to run. It checks for Bash installation during execution.
+- **CMake**: Used to configure and build the project. Test 0000 runs `cmake` as the suite gate.
 - **GCC (GNU Compiler Collection)**: Necessary for compiling the generated C code into executables from Bash scripts. Shave validates the presence of GCC before proceeding with compilation.
 - **Unix-like Operating System**: Such as Linux or macOS, to ensure compatibility with Bash scripting and system commands.
 - **UPX (Ultimate Packer for eXecutables)**: Used for compressing the compiled executables to reduce their size. Shave requires UPX to be installed for the full compilation process.
@@ -17,10 +18,10 @@ Below are instructions for installing the required dependencies on different ope
 
 ### Fedora
 
-- **GCC and related tools**:  
+- **GCC, CMake, and related tools**:  
 
   ```bash
-  sudo dnf install gcc make
+  sudo dnf install gcc make cmake
   ```
 
 - **UPX**:  
@@ -44,11 +45,11 @@ Below are instructions for installing the required dependencies on different ope
 
 ### Ubuntu
 
-- **GCC and related tools**:  
+- **GCC, CMake, and related tools**:  
 
   ```bash
   sudo apt update
-  sudo apt install build-essential
+  sudo apt install build-essential cmake
   ```
 
 - **UPX**:  

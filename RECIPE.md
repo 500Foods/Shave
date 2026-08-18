@@ -6,8 +6,8 @@ in agentic workflows where the AI is just as likely to run off and burn things d
 
 ## Tests
 
-A comprehensive test suite is available in the tests folder. test_00_all.sh should be run after any major updates to ensure
-that everything is still in good working order.
+A test suite lives in the tests folder. `./tests/run-tests.sh` should be run after any major updates to ensure
+that everything is still in good working order. See TESTING.md for layout, the 0000 build gate, and how to add suites.
 
 ## Releases
 

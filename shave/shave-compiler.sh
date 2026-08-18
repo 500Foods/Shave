@@ -1,5 +1,9 @@
 #!/bin/bash
 # Shave Compiler: Handles compilation of generated C code to executable.
+#
+# CHANGELOG
+# 1.1.0 - 2026-08-18 - Compress generated executables with UPX -9
+# 1.0.0 - 2025-07-06 - Initial compiler module
 
 # Source the output handling script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -37,7 +41,7 @@ compile_c_to_executable() {
             # Run UPX and capture output to extract reduction percentage
             local upx_output
             # shellcheck disable=SC2034  # Variable reserved for future use
-            upx_output=$(upx --best "$output_executable" 2> /tmp/shave-upx-error.log)  # Reserved for future use
+            upx_output=$(upx -9 "$output_executable" 2> /tmp/shave-upx-error.log)  # Reserved for future use
             local upx_status=$?
             if [ $upx_status -eq 0 ]; then
                 # Get size after compression

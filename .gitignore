@@ -25,6 +25,7 @@ error_*.log
 tests/diagnostics/
 tests/results/
 tests/logs/
+tests/build/
 tests/*.log
 response_*.json
 temp_*
