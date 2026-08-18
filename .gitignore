@@ -45,3 +45,8 @@ tests/fixtures/hello-world.c
 tests/0005/echo-builtin
 tests/0005/echo-builtin.c
 tests/0006/printf-builtin
+tests/0006/printf-builtin.c
+tests/0008/echo-printf-loop
+tests/0008/echo-printf-loop.c
+tests/0009/wc
+tests/0009/wc.c

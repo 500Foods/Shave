@@ -2,6 +2,7 @@
 # Shave Parser: Reads and processes Bash script input for C code generation.
 #
 # CHANGELOG
+# 1.0.2 - 2026-08-18 - Load CST lines with mapfile so codegen can walk them
 # 1.0.1 - 2026-08-18 - Default DEBUG_MODE so shellcheck sees it assigned
 # 1.0.0 - Initial parser
 
@@ -59,15 +60,13 @@ generate_cst() {
         local tree_sitter_status=$?
         if (( tree_sitter_status == 0 )); then
             local parse_line_count
-            parse_line_count=$(echo "$tree_sitter_output" | wc -l | awk '{print $1}')
-            # Parse CST output into a regular array
-            IFS=$'\n' read -d '' -r -a cst_lines <<< "$tree_sitter_output"
+            local -a cst_lines=()
+            mapfile -t cst_lines <<< "$tree_sitter_output"
+            parse_line_count="${#cst_lines[@]}"
             for line in "${cst_lines[@]}"; do
-                # Match lines with optional labels (like "name:" or "argument:") followed by node syntax
-                if [[ "$line" =~ ^[[:space:]]*([a-zA-Z_][a-zA-Z0-9_]*:[[:space:]]*)??\(([a-zA-Z_][a-zA-Z0-9_]*)\ \[([0-9]+),\ ([0-9]+)\]\ -\ \[([0-9]+),\ ([0-9]+)\] ]]; then
-                    # Store only the original tree-sitter output with proper indentation
+                if [[ "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*:[[:space:]]*)?\(([A-Za-z_][A-Za-z0-9_]*)\ \[([0-9]+),\ ([0-9]+)\]\ -\ \[([0-9]+),\ ([0-9]+)\] ]]; then
                     cst_array[node_count]="$line"
-                    ((node_count++))
+                    node_count=$((node_count + 1))
                 fi
             done
             log_output "info" "tree-sitter parsed '$input_script': $(format_number "$node_count") CST nodes from $(format_number "$parse_line_count") lines of output"

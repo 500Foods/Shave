@@ -1,6 +1,7 @@
 # shave_echo_builtin: reusable in-process Bash echo
 #
 # CHANGELOG
+# 1.0.3 - 2026-08-18 - Folder renamed to shave_echo_builtin
 # 1.0.0 - 2026-08-18 - Standalone or add_subdirectory library target
 
 cmake_minimum_required(VERSION 3.16)

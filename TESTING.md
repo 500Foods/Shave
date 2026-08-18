@@ -42,15 +42,17 @@ tests/
   0003/test.sh      Cppcheck
   0004/test.sh      Shellcheck
   0005/             Echo builtin vs Bash (test.sh plus echo-builtin.sh; shave/shave writes the binary)
-  0006/             Printf builtin vs Bash (test.sh plus printf-builtin.sh/.c; Shave compiles printf-builtin)
+  0006/             Printf builtin vs Bash (test.sh plus printf-builtin.sh; shave/shave writes the binary)
   0007/test.sh      CLI output defaults and unchanged skip
+  0008/             Echo/printf for-loop vs Bash (test.sh plus echo-printf-loop.sh; shave/shave writes the binary)
+  0009/             Wc vs GNU wc (test.sh plus wc.sh; shave/shave writes the binary)
   9999/test.sh      Final cloc table
   NNNN/test.sh      Later suites
   fixtures/         Shared later-transpile samples such as hello-world.sh
   unity/            Project Unity tests
     framework/      Committed Unity 2.6.1 (ThrowTheSwitch)
 shave/              Transpiler source (Bash and C)
-shave-libs/         In-process replacements for frequent externals (wc, cat, ...)
+shave-libs/         In-process replacements for frequent externals (shave_wc, shave_echo_builtin, ...)
 VERSION             Project version used by CMake and the summary title
 ```
 
@@ -85,8 +87,10 @@ A suite is one of:
 | 0003 | Cppcheck C analysis | Lint project C/H files using `.lintignore` and `.lintignore-c`; last-result cache in `~/.cache/Shave/0003` |
 | 0004 | Shellcheck analysis | Lint project `*.sh` files; fail on warning/error, not style notes; last-result cache in `~/.cache/Shave/0004` |
 | 0005 | Echo builtin | Unity contract for `shave_echo_builtin`, then `shave/shave echo-builtin.sh` and byte-compare the generated binary to the script |
-| 0006 | Printf builtin | Unity contract for `shave_printf_builtin`, Shave-compile `printf-builtin.c`, then byte-compare `tests/0006/printf-builtin` to `printf-builtin.sh` |
+| 0006 | Printf builtin | Unity contract for `shave_printf_builtin`, then `shave/shave printf-builtin.sh` and byte-compare the generated binary to the script |
 | 0007 | CLI output and skip | Default binary plus `.c`, `-o`/`-c`, and skip when bash/toolchain/outputs are unchanged |
+| 0008 | Echo printf loop | `shave/shave` a 5-iteration `for` that calls echo and printf; byte-compare the generated binary to the script |
+| 0009 | Wc | Unity contract for `shave_wc`, then `shave/shave wc.sh` and byte-compare the generated binary to the script |
 | 9999 | CLOC summary | Sequential end report via `tables` |
 
 ## Adding a suite
@@ -160,13 +164,12 @@ Use this suite as the product grows. Do not wait until the transpiler is "done."
 
 ### As codegen becomes real
 
-Echo generation is live: `shave/shave script.sh` writes `script.c` plus a UPX-compressed `script` beside the input. 0005 is the first transpile comparison. Remaining work:
+Echo, printf, and wc generation are live from the tree-sitter CST: `shave/shave script.sh` writes `script.c` plus a UPX-compressed `script` beside the input. 0005 and 0006 are the builtin transpile comparisons. 0008 is the first loop comparison. 0009 is the first coreutils comparison. Remaining work:
 
-1. **Suite comparison samples** beside `tests/NNNN/test.sh` with expected stdout/stderr/exit status. `0005/echo-builtin.sh` and `0006/printf-builtin.sh` are the first feature samples.
-2. **Library comparison suites** such as 0006: Shave's compiler still builds the suite C sample that calls the in-process lib, then compare that binary's bytes to Bash until printf generation exists.
-3. **Transpile comparison suites** that run the Bash original and the `shave/shave` binary against the same sample. 0005 is the first of these.
-4. **Unity tests** against generated C helpers once those helpers exist as libraries rather than one-off mains.
-5. **Self-hosting later**, not first. Do not make 0000 depend on Shave compiling itself until fixture comparisons are green.
+1. **Suite comparison samples** beside `tests/NNNN/test.sh` with expected stdout/stderr/exit status. `0005/echo-builtin.sh`, `0006/printf-builtin.sh`, `0008/echo-printf-loop.sh`, and `0009/wc.sh` are the first feature samples.
+2. **Transpile comparison suites** that run the Bash original and the `shave/shave` binary against the same sample. 0005, 0006, 0008, and 0009 are the first of these.
+3. **Unity tests** against generated C helpers once those helpers exist as libraries rather than one-off mains.
+4. **Self-hosting later**, not first. Do not make 0000 depend on Shave compiling itself until fixture comparisons are green.
 
 Number those suites in the 0010–0899 range. Keep 09xx for project-wide quality if needed. Keep 9999 as the trailer.
 

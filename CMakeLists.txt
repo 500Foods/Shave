@@ -24,13 +24,18 @@ add_executable(shave-version shave/version.c)
 target_include_directories(shave-version PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include")
 target_link_libraries(shave-version PRIVATE shave_version_info)
 
-add_subdirectory(shave-libs/echo-builtin)
+add_subdirectory(shave-libs/shave_echo_builtin)
 set_target_properties(shave_echo_builtin PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
-add_subdirectory(shave-libs/printf-builtin)
+add_subdirectory(shave-libs/shave_printf_builtin)
 set_target_properties(shave_printf_builtin PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+add_subdirectory(shave-libs/shave_wc)
+set_target_properties(shave_wc PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
@@ -55,6 +60,12 @@ if(SHAVE_BUILD_TESTS)
     set_target_properties(test_printf_builtin PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
     )
+
+    add_executable(test_wc tests/unity/test_wc.c)
+    target_link_libraries(test_wc PRIVATE unity shave_wc)
+    set_target_properties(test_wc PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    )
 endif()
 
 install(TARGETS shave-version RUNTIME DESTINATION bin)
@@ -62,6 +73,7 @@ install(PROGRAMS
     shave/shave
     shave/shave.sh
     shave/shave-boilerplate.sh
+    shave/shave-codegen.sh
     shave/shave-combiner.sh
     shave/shave-compiler.sh
     shave/shave-hash.sh

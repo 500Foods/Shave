@@ -2,13 +2,16 @@
 # Test 0006: Printf builtin
 #
 # CHANGELOG
+# 1.3.0 - 2026-08-18 - shave/shave printf-builtin.sh, then compare binary to script
 # 1.2.0 - 2026-08-18 - Shave compiler builds tests/0006/printf-builtin from printf-builtin.c
 # 1.1.0 - 2026-08-18 - Comparison samples live beside this harness
 # 1.0.0 - 2026-08-18 - Compare shave_printf_builtin C output to Bash printf
 #
-# Runs the Unity contract for the reusable printf library, then compiles
-# tests/0006/printf-builtin.c with Shave's compiler into tests/0006/printf-builtin
-# and compares that binary's stdout to tests/0006/printf-builtin.sh.
+# Runs the Unity contract for the reusable printf library, then runs
+# shave/shave on tests/0006/printf-builtin.sh. That writes printf-builtin.c
+# and the UPX-compressed printf-builtin binary beside the script. Compare
+# the binary stdout to the script stdout. Do not compile a hand-written C
+# twin. Bash and C must match byte-for-byte, including NULs.
 
 set -u
 
@@ -21,11 +24,6 @@ REPO_ROOT="$(cd "${TESTS_DIR}/.." && pwd)"
 # Justification: harness path is derived from this suite directory at runtime
 source "${TESTS_DIR}/lib/harness.sh"
 
-# shellcheck source=../../shave/shave-compiler.sh
-# shellcheck disable=SC1091
-# Justification: compiler path is derived from the repository root at runtime
-source "${REPO_ROOT}/shave/shave-compiler.sh"
-
 SHAVE_0006_WORK=""
 shave_0006_cleanup() {
     if [[ -n "${SHAVE_0006_WORK}" && -d "${SHAVE_0006_WORK}" ]]; then
@@ -36,34 +34,43 @@ trap shave_0006_cleanup EXIT
 
 shave_test_init "0006" "printf_builtin"
 
+SHAVE_BIN="${REPO_ROOT}/shave/shave"
 UNITY_BIN="${REPO_ROOT}/build/tests/test_printf_builtin"
+FIXTURE_SH="${TEST_DIR}/printf-builtin.sh"
 FIXTURE_C="${TEST_DIR}/printf-builtin.c"
 FIXTURE_BIN="${TEST_DIR}/printf-builtin"
-FIXTURE_SH="${TEST_DIR}/printf-builtin.sh"
 LIB_A="${REPO_ROOT}/build/libshave_printf_builtin.a"
 
 shave_assert_file "${LIB_A}" "shave_printf_builtin archive exists"
+shave_assert_file "${SHAVE_BIN}" "shave/shave exists"
+shave_assert_exec "${SHAVE_BIN}" "shave/shave is executable"
 shave_assert_file "${UNITY_BIN}" "Unity printf binary exists"
 shave_assert_exec "${UNITY_BIN}" "Unity printf binary is executable"
-shave_assert_file "${FIXTURE_C}" "printf-builtin.c exists"
 shave_assert_file "${FIXTURE_SH}" "printf-builtin.sh exists"
 
 if [[ -x "${UNITY_BIN}" ]]; then
     shave_run_unity "${UNITY_BIN}"
 fi
 
-if [[ ! -f "${FIXTURE_C}" || ! -f "${FIXTURE_SH}" ]]; then
+if [[ ! -x "${SHAVE_BIN}" || ! -f "${FIXTURE_SH}" ]]; then
     shave_test_finish
     exit $?
 fi
 
 export SHAVE_ROOT="${REPO_ROOT}"
 export SHAVE_LIBDIR="${REPO_ROOT}/build"
+export SHAVE_FORCE=1
 
-compile_status=0
-compile_c_to_executable "${FIXTURE_C}" "${FIXTURE_BIN}" || compile_status=$?
-shave_assert_status 0 "${compile_status}" "Shave compiler builds printf-builtin"
-shave_assert_exec "${FIXTURE_BIN}" "printf-builtin binary is executable"
+shave_status=0
+"${SHAVE_BIN}" "${FIXTURE_SH}" >/dev/null || shave_status=$?
+shave_assert_status 0 "${shave_status}" "shave/shave printf-builtin.sh exits 0"
+shave_assert_file "${FIXTURE_C}" "shave writes printf-builtin.c beside the script"
+shave_assert_exec "${FIXTURE_BIN}" "shave writes printf-builtin beside the script"
+if grep -q 'shave_printf_builtin(' "${FIXTURE_C}" 2>/dev/null; then
+    shave_pass "generated C calls shave_printf_builtin"
+else
+    shave_fail "generated C does not call shave_printf_builtin"
+fi
 
 if [[ ! -x "${FIXTURE_BIN}" ]]; then
     shave_test_finish

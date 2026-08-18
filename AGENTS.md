@@ -7,7 +7,7 @@ These instructions bind anyone working on Shave, especially agents that arrive w
 These are not suggestions. Do not debate them. Do not "just this once."
 
 - **NO PYTHON IN THE PROJECT.** No Python scripts, no `python`/`python3` calls, no Python helpers, no Python in generated output. Use Bash, C, `jq`, or `tables`.
-- **Default `shave-libs/` are GNU coreutils.** In-process replacements start with `wc`, `cat`, `echo`, and the rest of that set so generated C does not fork the way Bash does.
+- **Default `shave-libs/` are GNU coreutils and Bash builtins.** In-process replacements live in `shave_wc`, `shave_echo_builtin`, `shave_printf_builtin`, and later siblings so generated C does not fork the way Bash does.
 - **Tests for everything.** New behavior gets a `tests/NNNN/test.sh` in the same change. No coverage, no merge.
 - **shellcheck clean.** No warnings, no errors. Exceptions only when critically necessary, with a justification on the line above. Prefer none.
 - **cppcheck clean.** No warnings, no errors. Same exception rule as shellcheck. Prefer none.

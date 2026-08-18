@@ -7,6 +7,8 @@
 
 # CHANGELOG
 # =========
+# Version 1.0.3 - 2026-08-18 - CST codegen for wc via shave_wc
+# Version 1.3.0 - 2026-08-18 - Source CST codegen for echo, printf, and for-loops
 # Version 1.2.0 - 2026-08-18 - Product CLI is shave/shave; this file remains a wrapper
 # Version 1.1.0 - 2026-08-18 - Write .c next to the binary, -c, SHAVE_* overrides, skip unchanged builds
 # Version 1.0.0 - 2025-07-06 - First stable release with core functionality.
@@ -16,7 +18,7 @@
 # ===============
 # Defines the name and version of the Shave script for consistent identification.
 SHAVE_SCRIPT_NAME=$(basename "$0")
-SHAVE_SCRIPT_VERSION="1.2.0"
+SHAVE_SCRIPT_VERSION="1.0.3"
 
 # Display Help Information
 # =========================
@@ -137,13 +139,14 @@ log_output "step" "Sourcing Scripts"
 # shellcheck source=./shave-boilerplate.sh  # Provides boilerplate C code generation
 # shellcheck source=./shave-compiler.sh  # Handles compilation of C code
 # shellcheck source=./shave-parser.sh  # Parses Bash scripts for conversion
+# shellcheck source=./shave-codegen.sh  # Emits C from the CST
 # shellcheck source=./shave-hash.sh  # Manages hash generation for tracking
 # shellcheck source=./shave-reader.sh  # Reads script content into arrays
 # shellcheck source=./shave-combiner.sh  # Combines content and CST data
 # shellcheck source=./shave-validate.sh  # Validates script syntax and status
 # shellcheck source=./shave-process.sh  # Orchestrates the processing workflow
 # shellcheck disable=SC1091  # File paths are dynamically determined at runtime
-for script in "$SCRIPT_DIR/shave-boilerplate.sh" "$SCRIPT_DIR/shave-compiler.sh" "$SCRIPT_DIR/shave-parser.sh" "$SCRIPT_DIR/shave-hash.sh" "$SCRIPT_DIR/shave-reader.sh" "$SCRIPT_DIR/shave-combiner.sh" "$SCRIPT_DIR/shave-validate.sh" "$SCRIPT_DIR/shave-process.sh"; do
+for script in "$SCRIPT_DIR/shave-boilerplate.sh" "$SCRIPT_DIR/shave-compiler.sh" "$SCRIPT_DIR/shave-parser.sh" "$SCRIPT_DIR/shave-codegen.sh" "$SCRIPT_DIR/shave-hash.sh" "$SCRIPT_DIR/shave-reader.sh" "$SCRIPT_DIR/shave-combiner.sh" "$SCRIPT_DIR/shave-validate.sh" "$SCRIPT_DIR/shave-process.sh"; do
     if [ -f "$script" ]; then
         log_output "info" "Sourcing $script"
         . "$script"
@@ -180,6 +183,10 @@ if ! type generate_cst >/dev/null 2>&1; then
 fi
 if ! type combine_content_cst >/dev/null 2>&1; then
     log_output "fail" "Function combine_content_cst not found. Sourcing failed"
+    exit 1
+fi
+if ! type shave_generate_c >/dev/null 2>&1; then
+    log_output "fail" "Function shave_generate_c not found. Sourcing failed"
     exit 1
 fi
 log_output "pass" "All functions sourced successfully"

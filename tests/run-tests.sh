@@ -3,6 +3,7 @@
 # Runs tests/0000 first, then remaining numbered suites in parallel via xargs
 #
 # CHANGELOG
+# 1.6.4 - 2026-08-18 - Parse suite ids as decimal so 0008 is valid
 # 1.6.3 - 2026-08-18 - Create suite log dirs before writing result.txt
 # 1.6.2 - 2026-08-18 - Escape JSON in bash; Python is banned
 # 1.6.1 - 2026-08-18 - Bold totals row, title, and footer
@@ -131,15 +132,17 @@ suite_exists() {
 
 pad_test_id() {
     local raw="$1"
+    local num
     if [[ ! "${raw}" =~ ^[0-9]+$ ]]; then
         echo "Error: invalid test number '${raw}'" >&2
         return 1
     fi
-    if (( raw > 9999 )); then
+    num=$((10#${raw}))
+    if (( num > 9999 )); then
         echo "Error: test number '${raw}' is out of range" >&2
         return 1
     fi
-    printf '%04d' "${raw}"
+    printf '%04d' "${num}"
 }
 
 add_unique_id() {

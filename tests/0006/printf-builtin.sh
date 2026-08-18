@@ -2,7 +2,7 @@
 # shellcheck disable=SC2182,SC2183
 # Justification: fixture reuses formats and omits args to match Bash printf
 # Comparison sample: Bash builtin printf usage
-# Paired with printf-builtin.c; 0006 compiles printf-builtin beside this script
+# shave/shave writes printf-builtin.c and printf-builtin beside this script
 
 printf "Hello World!\n"
 printf "hello"

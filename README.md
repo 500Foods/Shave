@@ -11,8 +11,8 @@ This is the very start of a Bash-to-C transpiler. Why? Well, lots of bash script
 ## Layout
 
 - `shave/shave` is the product CLI. `shave/` also holds the transpiler modules and C sources.
-- `shave-libs/` is for in-process replacements of frequent externals (`wc`, `cat`, and the like) so generated C does not fork the way Bash does. Generated apps link those libs; the transpiler itself does not.
-- `tests/NNNN/` holds the harness (`test.sh`) plus any comparison samples for that suite. Echo/printf live in 0005/0006.
+- `shave-libs/` is for in-process replacements of frequent externals (`shave_wc`, `shave_echo_builtin`, `shave_printf_builtin`) so generated C does not fork the way Bash does. Generated apps link those libs; the transpiler itself does not.
+- `tests/NNNN/` holds the harness (`test.sh`) plus any comparison samples for that suite. Echo/printf live in 0005/0006. The first loop sample is 0008. Wc is 0009.
 - `tests/fixtures/` holds shared later-transpile samples such as `hello-world.sh`. Do not put those in `shave/`.
 - `tests/unity/framework/` is the committed Unity 2.6.1 copy. Build trees stay local and gitignored.
 

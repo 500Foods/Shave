@@ -12,10 +12,10 @@ void test_parse_current_version(void) {
     int minor = 0;
     int patch = 0;
 
-    TEST_ASSERT_TRUE(shave_parse_version("0.1.2", &major, &minor, &patch));
-    TEST_ASSERT_EQUAL_INT(0, major);
-    TEST_ASSERT_EQUAL_INT(1, minor);
-    TEST_ASSERT_EQUAL_INT(2, patch);
+    TEST_ASSERT_TRUE(shave_parse_version("1.0.3", &major, &minor, &patch));
+    TEST_ASSERT_EQUAL_INT(1, major);
+    TEST_ASSERT_EQUAL_INT(0, minor);
+    TEST_ASSERT_EQUAL_INT(3, patch);
 }
 
 void test_parse_rejects_null_text(void) {
