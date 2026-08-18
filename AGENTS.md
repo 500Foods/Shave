@@ -18,17 +18,12 @@ The live suite is `./tests/run-tests.sh`. See TESTING.md before adding or changi
 
 - Run `./tests/run-tests.sh` after any major update.
 - Run `./tests/run-tests.sh NNNN` to iterate on one suite. That path does not run 0000 and does not print the summary table.
-- Add new coverage as `tests/NNNN/test.sh`. Do not extend `oldtests/`.
+- Add new coverage as `tests/NNNN/test.sh`.
 - 0000 is the CMake build gate. 9999 is the sequential cloc trailer. Everything else must be safe to run in parallel.
 - 0001 is the durable CLI missing-input contract. Transpile samples live in `tests/fixtures/`, not `shave/`.
 - `shave/` is the transpiler (Bash and C). `shave-libs/` is for in-process replacements of frequent externals so generated C does not fork.
 - Unity lives in `tests/unity/framework/`. Build trees stay local and gitignored.
 - Do not create a second orchestrator.
-
-## Releases
-
-In release/RELEASES.md you will find comprehensive instructions on how to update and otherwise manage release notes.
-Please try not to deviate from the instructions in that file.
 
 ## Coding Habits
 

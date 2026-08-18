@@ -21,9 +21,6 @@ tests/results/*
 tests/diagnostics/*
 tests/build/*
 
-# Previous suite
-oldtests/*
-
 # Vendored Unity 2.6.1 (lint the project, not the framework)
 tests/unity/framework/*
 

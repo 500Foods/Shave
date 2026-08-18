@@ -2,6 +2,7 @@
 # CLOC table helper adapted from Hydrogen's cloc_tables flow
 #
 # CHANGELOG
+# 1.0.3 - 2026-08-18 - Drop retired oldtests exclude
 # 1.0.2 - 2026-08-18 - Exclude vendored Unity under tests/unity/framework
 # 1.0.1 - 2026-08-18 - Escape JSON in bash; Python is banned
 # 1.0.0 - 2026-08-18 - Lean cloc-to-tables renderer for Shave
@@ -77,7 +78,6 @@ shave_cloc_render() {
         env LC_ALL=en_US.UTF_8 cloc . --quiet --json \
             --exclude-list-file="${exclude_list}" \
             --not-match-d='build' \
-            --not-match-d='oldtests' \
             --not-match-d='tests/unity/framework' \
             --force-lang=C,c --force-lang=C,h \
             > "${cloc_json}"

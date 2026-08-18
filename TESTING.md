@@ -1,6 +1,6 @@
 # Testing Shave
 
-This is the current test suite. `oldtests/` is the previous framework. Do not extend it. Do not restore `test_00_all.sh`. New work belongs here.
+This is the current test suite. New work belongs here.
 
 ## How to run
 
@@ -111,7 +111,7 @@ shave_test_finish
 exit $?
 ```
 
-Do not add suites to `oldtests/`. Do not invent a second orchestrator.
+Do not invent a second orchestrator.
 
 ## Result contract
 
@@ -164,8 +164,6 @@ Number those suites in the 0010–0899 range. Keep 09xx for project-wide quality
 
 ### What not to do
 
-- Do not port `oldtests/` wholesale. Steal an idea, rewrite it as `NNNN/test.sh`.
-- Do not source the old `lib/framework.sh` or `lib/tables.sh`. Use `/usr/local/bin/tables`.
 - Do not make suites share writable files. Parallel runs will collide.
 - Do not skip 0000 in CI or after CMake/source changes.
 - Do not treat SKIP as a soft pass. SKIP fails the suite and counts in the exit code.
