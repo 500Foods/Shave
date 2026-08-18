@@ -2,6 +2,7 @@
 # Test 0004: Shellcheck analysis
 #
 # CHANGELOG
+# 1.3.0 - 2026-08-18 - Also lint the extensionless shave/shave CLI
 # 1.2.0 - 2026-08-18 - Per-file last-result cache under ~/.cache/Shave/0004
 # 1.1.0 - 2026-08-18 - Fail on warning/error only, not style notes
 # 1.0.0 - 2026-08-18 - Initial shellcheck suite
@@ -42,7 +43,12 @@ if ! command -v shellcheck >/dev/null 2>&1; then
 fi
 shave_pass "shellcheck is available"
 
-mapfile -t SHELL_FILES < <(shave_list_files ".lintignore" -name '*.sh')
+mapfile -t SHELL_FILES < <({
+    shave_list_files ".lintignore" -name '*.sh'
+    if [[ -f ./shave/shave ]]; then
+        printf '%s\n' "./shave/shave"
+    fi
+} | sort -u)
 if [[ ${#SHELL_FILES[@]} -eq 0 ]]; then
     shave_pass "no shell files to check"
     shave_test_finish

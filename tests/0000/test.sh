@@ -3,6 +3,12 @@
 # Runs first and sequentially. Remaining suites assume this passed
 #
 # CHANGELOG
+# 1.7.0 - 2026-08-18 - CMake no longer builds echo/printf comparison binaries
+# 1.6.2 - 2026-08-18 - Echo fixture binary lives beside tests/0005/echo-builtin.sh
+# 1.6.1 - 2026-08-18 - cmake --build stays incremental; do not wipe the tree
+# 1.6.0 - 2026-08-18 - Build suite-local echo/printf comparison samples
+# 1.5.0 - 2026-08-18 - Build shave_printf_builtin archive, Unity, and C fixture
+# 1.4.0 - 2026-08-18 - Build shave_echo_builtin archive, Unity, and C fixture
 # 1.3.0 - 2026-08-18 - C sources live in shave/; Unity lives in tests/unity/framework
 # 1.2.0 - 2026-08-18 - Also build Unity test binaries
 # 1.1.0 - 2026-08-18 - Replace ad-hoc toolchain probe with CMake configure and build
@@ -25,6 +31,10 @@ VERSION_FILE="${REPO_ROOT}/VERSION"
 BUILD_DIR="${REPO_ROOT}/build"
 VERSION_BIN="${BUILD_DIR}/shave-version"
 UNITY_BIN="${BUILD_DIR}/tests/test_version"
+ECHO_LIB="${BUILD_DIR}/libshave_echo_builtin.a"
+ECHO_UNITY_BIN="${BUILD_DIR}/tests/test_echo_builtin"
+PRINTF_LIB="${BUILD_DIR}/libshave_printf_builtin.a"
+PRINTF_UNITY_BIN="${BUILD_DIR}/tests/test_printf_builtin"
 
 shave_assert_cmd cmake "cmake is available"
 shave_assert_cmd gcc "gcc is available"
@@ -60,6 +70,10 @@ if [[ -x "${VERSION_BIN}" ]]; then
 fi
 
 shave_assert_exec "${UNITY_BIN}" "Unity test_version was built"
+shave_assert_file "${ECHO_LIB}" "shave_echo_builtin archive was built"
+shave_assert_exec "${ECHO_UNITY_BIN}" "Unity test_echo_builtin was built"
+shave_assert_file "${PRINTF_LIB}" "shave_printf_builtin archive was built"
+shave_assert_exec "${PRINTF_UNITY_BIN}" "Unity test_printf_builtin was built"
 
 shave_test_finish
 exit $?

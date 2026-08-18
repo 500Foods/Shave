@@ -41,9 +41,12 @@ tests/
   0002/test.sh      Unity version parser
   0003/test.sh      Cppcheck
   0004/test.sh      Shellcheck
+  0005/             Echo builtin vs Bash (test.sh plus echo-builtin.sh; shave/shave writes the binary)
+  0006/             Printf builtin vs Bash (test.sh plus printf-builtin.sh/.c; Shave compiles printf-builtin)
+  0007/test.sh      CLI output defaults and unchanged skip
   9999/test.sh      Final cloc table
   NNNN/test.sh      Later suites
-  fixtures/         Stable bash samples for later transpile comparison
+  fixtures/         Shared later-transpile samples such as hello-world.sh
   unity/            Project Unity tests
     framework/      Committed Unity 2.6.1 (ThrowTheSwitch)
 shave/              Transpiler source (Bash and C)
@@ -76,11 +79,14 @@ A suite is one of:
 
 | ID | Name | Role |
 | -- | ---- | ---- |
-| 0000 | CMake project build | Gate. Configure/build CMake, verify `shave-version` and Unity binaries |
-| 0001 | CLI missing input | `shave.sh` with no operand exits non-zero and names the missing input |
+| 0000 | CMake project build | Gate. Configure/build CMake, verify `shave-version`, libraries, and Unity binaries |
+| 0001 | CLI missing input | `shave/shave` with no operand exits non-zero and names the missing input |
 | 0002 | Unity version parser | Run `build/tests/test_version` |
 | 0003 | Cppcheck C analysis | Lint project C/H files using `.lintignore` and `.lintignore-c`; last-result cache in `~/.cache/Shave/0003` |
 | 0004 | Shellcheck analysis | Lint project `*.sh` files; fail on warning/error, not style notes; last-result cache in `~/.cache/Shave/0004` |
+| 0005 | Echo builtin | Unity contract for `shave_echo_builtin`, then `shave/shave echo-builtin.sh` and byte-compare the generated binary to the script |
+| 0006 | Printf builtin | Unity contract for `shave_printf_builtin`, Shave-compile `printf-builtin.c`, then byte-compare `tests/0006/printf-builtin` to `printf-builtin.sh` |
+| 0007 | CLI output and skip | Default binary plus `.c`, `-o`/`-c`, and skip when bash/toolchain/outputs are unchanged |
 | 9999 | CLOC summary | Sequential end report via `tables` |
 
 ## Adding a suite
@@ -90,7 +96,7 @@ A suite is one of:
 3. Source `tests/lib/harness.sh`.
 4. Call `shave_test_init`, assertions, then `shave_test_finish`.
 5. Keep the suite independent of siblings. Shared helpers go in `tests/lib/`.
-6. If it needs a compiled binary, add that target to CMake and assert it in 0000.
+6. Unity and library archives belong in CMake/0000. Suite comparison binaries come from `shave/shave`, not CMake.
 7. Run `./tests/run-tests.sh NNNN` while writing it, then `./tests/run-tests.sh` before finishing.
 
 ```bash
@@ -146,19 +152,21 @@ Use this suite as the product grows. Do not wait until the transpiler is "done."
 
 - Keep 0000 as the only build gate. New compiled artifacts must appear there.
 - Grow Unity coverage in `tests/unity/` for C helpers such as version parsing, later CST/combiner logic, and generated-code contracts.
-- Keep 0001 as the missing-input CLI contract. It does not transpile and should stay green while the app grows. Add sibling CLI suites for help, version, debug/keep flags, and sourced-file discovery.
-- Put transpile fixtures under `tests/fixtures/`, not in `shave/`. `hello-world.sh` is the first sample.
+- Keep 0001 as the missing-input CLI contract. It does not transpile and should stay green while the app grows. 0007 covers default output paths and skip. Add sibling CLI suites for version, debug/keep flags, and sourced-file discovery.
+- Put shared later-transpile samples under `tests/fixtures/`, not in `shave/`. `hello-world.sh` is the first shared sample. Suite-specific comparison scripts live in that suite folder beside `test.sh`.
+- 0000 must not wipe the CMake tree. `cmake --build` is incremental and should skip unchanged targets.
 - Treat 0003 and 0004 as merge gates. Fix new warnings in the same change that introduced them.
 - Leave 9999 last. If another end-of-run report is needed, add it to 9999 or add 9998 as another sequential trailer. Do not put reports in the parallel band.
 
 ### As codegen becomes real
 
-The current pipeline still emits `printf` wrappers. When real C generation starts, add suites in this order:
+Echo generation is live: `shave/shave script.sh` writes `script.c` plus a UPX-compressed `script` beside the input. 0005 is the first transpile comparison. Remaining work:
 
-1. **Fixture bash scripts** under `tests/fixtures/` with expected stdout/stderr/exit status.
-2. **Transpile comparison suites** that run the Bash original and the Shave-built binary against the same fixture.
-3. **Unity tests** against generated C helpers once those helpers exist as libraries rather than one-off mains.
-4. **Self-hosting later**, not first. Do not make 0000 depend on Shave compiling itself until fixture comparisons are green.
+1. **Suite comparison samples** beside `tests/NNNN/test.sh` with expected stdout/stderr/exit status. `0005/echo-builtin.sh` and `0006/printf-builtin.sh` are the first feature samples.
+2. **Library comparison suites** such as 0006: Shave's compiler still builds the suite C sample that calls the in-process lib, then compare that binary's bytes to Bash until printf generation exists.
+3. **Transpile comparison suites** that run the Bash original and the `shave/shave` binary against the same sample. 0005 is the first of these.
+4. **Unity tests** against generated C helpers once those helpers exist as libraries rather than one-off mains.
+5. **Self-hosting later**, not first. Do not make 0000 depend on Shave compiling itself until fixture comparisons are green.
 
 Number those suites in the 0010–0899 range. Keep 09xx for project-wide quality if needed. Keep 9999 as the trailer.
 

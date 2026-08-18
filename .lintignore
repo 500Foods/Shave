@@ -24,6 +24,13 @@ tests/build/*
 # Vendored Unity 2.6.1 (lint the project, not the framework)
 tests/unity/framework/*
 
+# Generated comparison outputs
+tests/0005/echo-builtin
+tests/0005/echo-builtin.c
+tests/0006/printf-builtin
+tests/fixtures/hello-world
+tests/fixtures/hello-world.c
+
 # Specific test result files that don't need to follow standalone markdown rules
 tests/results/latest_test_results.md
 tests/results/repository_info.md

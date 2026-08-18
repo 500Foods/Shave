@@ -24,6 +24,16 @@ add_executable(shave-version shave/version.c)
 target_include_directories(shave-version PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include")
 target_link_libraries(shave-version PRIVATE shave_version_info)
 
+add_subdirectory(shave-libs/echo-builtin)
+set_target_properties(shave_echo_builtin PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+add_subdirectory(shave-libs/printf-builtin)
+set_target_properties(shave_printf_builtin PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
 if(SHAVE_BUILD_TESTS)
     add_library(unity STATIC tests/unity/framework/unity.c)
     target_include_directories(unity PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tests/unity/framework")
@@ -33,10 +43,23 @@ if(SHAVE_BUILD_TESTS)
     set_target_properties(test_version PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
     )
+
+    add_executable(test_echo_builtin tests/unity/test_echo_builtin.c)
+    target_link_libraries(test_echo_builtin PRIVATE unity shave_echo_builtin)
+    set_target_properties(test_echo_builtin PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    )
+
+    add_executable(test_printf_builtin tests/unity/test_printf_builtin.c)
+    target_link_libraries(test_printf_builtin PRIVATE unity shave_printf_builtin)
+    set_target_properties(test_printf_builtin PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    )
 endif()
 
 install(TARGETS shave-version RUNTIME DESTINATION bin)
 install(PROGRAMS
+    shave/shave
     shave/shave.sh
     shave/shave-boilerplate.sh
     shave/shave-combiner.sh

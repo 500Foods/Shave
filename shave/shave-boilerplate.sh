@@ -1,5 +1,9 @@
 #!/bin/bash
 # Shave Boilerplate: Generates the basic C code structure for the transpiler output.
+#
+# CHANGELOG
+# 1.1.0 - 2026-08-18 - Include echo builtin and status for generated mains
+# 1.0.0 - Initial boilerplate
 
 # Source the output handling script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -21,7 +25,7 @@ generate_c_boilerplate() {
     local generation_timestamp
     generation_timestamp=$(date '+%Y-%m-%d %H:%M:%S %Z')
     local script_location
-    script_location="$SCRIPT_DIR/shave.sh"
+    script_location="$SCRIPT_DIR/shave"
     # Handle script timestamp extraction for different systems (macOS vs Linux)
     local script_timestamp
     local raw_timestamp
@@ -53,13 +57,18 @@ generate_c_boilerplate() {
 #include <stdlib.h>
 #include <string.h>
 
+#include "shave_echo_builtin.h"
+
 // Hash Table Start
 // Hash Table End
 
 int main(int argc, char *argv[]) {
+    int status = 0;
+    (void)argc;
+    (void)argv;
     // Script start - Additional generated code will be inserted here
     // Script end - Transpiled code stops here
-    return 0;
+    return status == 0 ? 0 : 1;
 }
 EOF
     log_output "info" "Generated C boilerplate in $output_file"

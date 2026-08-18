@@ -2,6 +2,7 @@
 # Shave Process: Processes Bash scripts to generate C code, handling recursive sourcing.
 #
 # CHANGELOG
+# 1.1.0 - 2026-08-18 - Emit shave_echo_builtin calls for Bash echo lines
 # 1.0.1 - 2026-08-18 - Default DEBUG_MODE and script metadata for shellcheck
 # 1.0.0 - Initial process module
 
@@ -27,6 +28,127 @@ done
 
 # Maximum recursion depth to prevent infinite loops
 MAX_RECURSION_DEPTH=10
+
+shave_c_escape() {
+    local s="$1"
+    local out=""
+    local c
+    local -i i
+    local -i n
+    n=${#s}
+    for ((i = 0; i < n; i++)); do
+        c="${s:i:1}"
+        case "${c}" in
+            \\) out+='\\' ;;
+            \") out+='\"' ;;
+            $'\n') out+='\n' ;;
+            $'\r') out+='\r' ;;
+            $'\t') out+='\t' ;;
+            *) out+="${c}" ;;
+        esac
+    done
+    printf '%s' "${out}"
+}
+
+shave_tokenize_words() {
+    local line="$1"
+    local -n _out="$2"
+    local -i i=0
+    local -i n=${#line}
+    local c
+    local next
+    local word=""
+    local -i in_squote=0
+    local -i in_dquote=0
+    local -i had_token=0
+
+    _out=()
+    while (( i < n )); do
+        c="${line:i:1}"
+        if (( in_squote )); then
+            if [[ "${c}" == "'" ]]; then
+                in_squote=0
+            else
+                word+="${c}"
+            fi
+            i=$((i + 1))
+            continue
+        fi
+        if (( in_dquote )); then
+            if [[ "${c}" == '\' ]] && (( i + 1 < n )); then
+                next="${line:i+1:1}"
+                word+="${next}"
+                i=$((i + 2))
+                continue
+            fi
+            if [[ "${c}" == '"' ]]; then
+                in_dquote=0
+                i=$((i + 1))
+                continue
+            fi
+            word+="${c}"
+            i=$((i + 1))
+            continue
+        fi
+        case "${c}" in
+            [[:space:]])
+                if (( had_token )); then
+                    _out+=("${word}")
+                    word=""
+                    had_token=0
+                fi
+                i=$((i + 1))
+                ;;
+            "'")
+                in_squote=1
+                had_token=1
+                i=$((i + 1))
+                ;;
+            '"')
+                in_dquote=1
+                had_token=1
+                i=$((i + 1))
+                ;;
+            '\\')
+                if (( i + 1 < n )); then
+                    word+="${line:i+1:1}"
+                    had_token=1
+                    i=$((i + 2))
+                else
+                    word+='\'
+                    had_token=1
+                    i=$((i + 1))
+                fi
+                ;;
+            *)
+                word+="${c}"
+                had_token=1
+                i=$((i + 1))
+                ;;
+        esac
+    done
+    if (( had_token )); then
+        _out+=("${word}")
+    fi
+}
+
+shave_emit_echo_c() {
+    local -n _args="$1"
+    local -i argc
+    local -i i
+    local escaped
+    argc=${#_args[@]}
+    printf '    status |= shave_echo_builtin(%s, (char *[]){' "${argc}"
+    for ((i = 0; i < argc; i++)); do
+        escaped=""
+        escaped="$(shave_c_escape "${_args[i]}")"
+        if (( i > 0 )); then
+            printf ', '
+        fi
+        printf '"%s"' "${escaped}"
+    done
+    printf '});\n'
+}
 
 # Function to process a script, including validation and recursive handling of sourced files
 process() {
@@ -106,10 +228,22 @@ process() {
     {
         echo "    // Generated content from $input_script"
         local i
+        local line
+        local trimmed
+        local escaped_line
+        local -a words
         for ((i=0; i<${#script_content[@]}; i++)); do
-            local line="${script_content[$i]}"
-            # Escape special characters in the line for C string
-            local escaped_line
+            line="${script_content[$i]}"
+            trimmed="${line#"${line%%[![:space:]]*}"}"
+            if [[ -z "${trimmed}" || "${trimmed}" == \#* ]]; then
+                continue
+            fi
+            shave_tokenize_words "${trimmed}" words
+            if [[ ${#words[@]} -gt 0 && "${words[0]}" == "echo" ]]; then
+                shave_emit_echo_c words
+                continue
+            fi
+            escaped_line=""
             escaped_line=$(printf '%s\n' "$line" | sed 's/[\/&]/\\&/g' | sed 's/"/\\"/g')
             printf "    printf(\"%%s\\\\n\", \"%s\");\n" "$escaped_line"
         done

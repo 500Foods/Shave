@@ -10,10 +10,22 @@ This is the very start of a Bash-to-C transpiler. Why? Well, lots of bash script
 
 ## Layout
 
-- `shave/` is the transpiler itself: Bash scripts plus C sources.
-- `shave-libs/` is for in-process replacements of frequent externals (`wc`, `cat`, and the like) so generated C does not fork the way Bash does.
-- `tests/fixtures/` holds stable bash samples for later transpile comparison. Do not put those in `shave/`.
+- `shave/shave` is the product CLI. `shave/` also holds the transpiler modules and C sources.
+- `shave-libs/` is for in-process replacements of frequent externals (`wc`, `cat`, and the like) so generated C does not fork the way Bash does. Generated apps link those libs; the transpiler itself does not.
+- `tests/NNNN/` holds the harness (`test.sh`) plus any comparison samples for that suite. Echo/printf live in 0005/0006.
+- `tests/fixtures/` holds shared later-transpile samples such as `hello-world.sh`. Do not put those in `shave/`.
 - `tests/unity/framework/` is the committed Unity 2.6.1 copy. Build trees stay local and gitignored.
+
+## CLI
+
+```bash
+shave/shave script.sh                  # script + script.c
+shave/shave script.sh -o test          # test + test.c
+shave/shave script.sh -o test -c out.c
+SHAVE_GCC='-O0 -g' shave/shave script.sh
+```
+
+Defaults write the binary and keep `<output>.c`. Unchanged bash, toolchain, and outputs skip generate and compile. `SHAVE_CC`, `SHAVE_GCC`, `SHAVE_CFLAGS`, `SHAVE_LDFLAGS`, `SHAVE_ROOT`, `SHAVE_LIBDIR`, `SHAVE_INCLUDEDIR`, `SHAVE_UPX`, and `SHAVE_FORCE` override only when set.
 
 ## Needs
 

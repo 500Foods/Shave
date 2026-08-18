@@ -3,6 +3,7 @@
 # Runs tests/0000 first, then remaining numbered suites in parallel via xargs
 #
 # CHANGELOG
+# 1.6.3 - 2026-08-18 - Create suite log dirs before writing result.txt
 # 1.6.2 - 2026-08-18 - Escape JSON in bash; Python is banned
 # 1.6.1 - 2026-08-18 - Bold totals row, title, and footer
 # 1.6.0 - 2026-08-18 - Totals row with count, name, time, status; colored title
@@ -272,6 +273,7 @@ write_result_file() {
     local skipped=0
 
     log_dir="$(suite_log_dir "${id}")"
+    mkdir -p "${log_dir}"
     logfile="${log_dir}/test.log"
     result_line="$(grep -E '^RESULT ' "${logfile}" 2>/dev/null | tail -n 1 || true)"
     if [[ -n "${result_line}" ]]; then

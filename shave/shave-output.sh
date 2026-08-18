@@ -1,6 +1,15 @@
 #!/bin/bash
 
 # shave-output.sh - A script to handle console output with formatted messages
+#
+# CHANGELOG
+# 1.0.1 - 2026-08-18 - Default log globals so set -u callers can source this
+# 1.0.0 - 2025-07-06 - Initial formatted console output helper
+
+: "${ABSOLUTE_ROOT:=}"
+: "${SHAVE_START_TIME:=}"
+: "${MAJOR_STEP:=}"
+: "${MINOR_STEP:=}"
 
 # Function to format a number with thousands separators
 # Usage: format_number <number>

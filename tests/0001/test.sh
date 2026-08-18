@@ -2,6 +2,7 @@
 # Test 0001: CLI missing input
 #
 # CHANGELOG
+# 1.2.0 - 2026-08-18 - Product CLI is shave/shave
 # 1.1.0 - 2026-08-18 - Drop hello-world bash run; keep durable CLI contract
 # 1.0.0 - 2026-08-18 - Initial bash comparison and CLI smoke test
 
@@ -18,17 +19,17 @@ source "$TESTS_DIR/lib/harness.sh"
 
 shave_test_init "0001" "cli_missing_input"
 
-SHAVE_SH="$REPO_ROOT/shave/shave.sh"
-shave_assert_file "$SHAVE_SH" "shave.sh exists"
-shave_assert_exec "$SHAVE_SH" "shave.sh is executable"
+SHAVE_BIN="$REPO_ROOT/shave/shave"
+shave_assert_file "$SHAVE_BIN" "shave/shave exists"
+shave_assert_exec "$SHAVE_BIN" "shave/shave is executable"
 
 missing_out=""
 missing_status=0
-missing_out="$("$SHAVE_SH" 2>&1)" || missing_status=$?
+missing_out="$("$SHAVE_BIN" 2>&1)" || missing_status=$?
 if [[ "$missing_status" -ne 0 ]]; then
-    shave_pass "shave.sh with no input exits non-zero"
+    shave_pass "shave/shave with no input exits non-zero"
 else
-    shave_fail "shave.sh with no input should fail"
+    shave_fail "shave/shave with no input should fail"
 fi
 shave_assert_contains "$missing_out" "No input Bash script provided" "missing input reports a clear error"
 
