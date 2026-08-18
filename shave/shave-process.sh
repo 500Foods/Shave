@@ -1,8 +1,15 @@
 #!/bin/bash
 # Shave Process: Processes Bash scripts to generate C code, handling recursive sourcing.
+#
+# CHANGELOG
+# 1.0.1 - 2026-08-18 - Default DEBUG_MODE and script metadata for shellcheck
+# 1.0.0 - Initial process module
 
 # Source the output handling script and other modular components
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+: "${DEBUG_MODE:=false}"
+: "${SHAVE_SCRIPT_NAME:=shave}"
+: "${SHAVE_SCRIPT_VERSION:=0.0.0}"
 # shellcheck source=./shave-output.sh  # Essential for logging and output handling
 # shellcheck source=./shave-reader.sh  # Reads script content into arrays
 # shellcheck source=./shave-parser.sh  # Parses Bash scripts for conversion

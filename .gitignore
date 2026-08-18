@@ -3,13 +3,16 @@ bin/
 dist/
 web/
 
-# Build outputs
+# Local CMake / compiler trees. Clone, then build.
 build/
-build_debug/
-build_perf/
-build_release/
-build_valgrind/
-build_unity_tests/
+build_*/
+cmake-build-*/
+CMakeUserPresets.json
+compile_commands.json
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
 
 # Temporary generated files
 payloads/swagger.json
@@ -18,8 +21,6 @@ payloads/payload.tar.br.enc
 # Log files
 *.log
 *.log.*
-system_test_*.log
-error_*.log
 
 # Test generated temporary files
 tests/diagnostics/
@@ -31,16 +32,9 @@ response_*.json
 temp_*
 *.tmp
 
-# Don't need to copy this around, thanks
-tests/unity/framework/
-
-# Executables
-hydrogen           
-hydrogen_debug     
-hydrogen_naked     
-hydrogen_perf      
-hydrogen_release
-hydrogen_release_exe
-hydrogen_valgrind
-
-
+# Object files and leftover local binaries
+*.o
+*.a
+*.so
+shave/shave
+shave/shave-reader

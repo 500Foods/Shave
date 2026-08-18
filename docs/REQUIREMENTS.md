@@ -10,6 +10,8 @@ The Shave project, a Bash-to-C transpiler, requires the following tools and envi
 - **NodeJS**: Required to run tree-sitter, which is used for parsing Bash scripts. NodeJS provides the runtime environment for npm packages like tree-sitter.
 - **tree-sitter**: A parsing tool used for generating a Concrete Syntax Tree (CST) of Bash scripts. Shave requires tree-sitter for optimal parsing. It can be installed via npm.
 
+Python is not a dependency and must not be introduced. Use Bash, C, or existing tools such as `jq` and `tables`.
+
 Ensure all components are installed and properly configured on your system before using Shave. Each tool is necessary for the complete functionality of the transpiler.
 
 ## Installing Dependencies

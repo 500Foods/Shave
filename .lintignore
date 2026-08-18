@@ -1,12 +1,6 @@
-# Hydrogen Linting Exclusions
+# Shave linting exclusions
 
-# SUMMARY: This configuration excludes several file types from linting:
-# - Build directories (debug, release, perf, valgrind builds)
-# - Test artifacts (logs, results, diagnostics)
-# - Test configuration with deliberate error (for testing error handling)
-# - C snippet includes for JSON handling that aren't meant to be linted independently
-#
-# Used by test_99_codebase.sh for documentation quality checks.
+# SUMMARY: Exclude build artifacts, previous test suite, and vendored code.
 
 # This file contains patterns for files to exclude from linting checks.
 # Each line should contain one pattern. Empty lines and lines starting with # are ignored.
@@ -27,7 +21,10 @@ tests/results/*
 tests/diagnostics/*
 tests/build/*
 
-# Unity test framework files
+# Previous suite
+oldtests/*
+
+# Vendored Unity 2.6.1 (lint the project, not the framework)
 tests/unity/framework/*
 
 # Specific test result files that don't need to follow standalone markdown rules

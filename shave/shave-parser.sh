@@ -1,8 +1,13 @@
 #!/bin/bash
 # Shave Parser: Reads and processes Bash script input for C code generation.
+#
+# CHANGELOG
+# 1.0.1 - 2026-08-18 - Default DEBUG_MODE so shellcheck sees it assigned
+# 1.0.0 - Initial parser
 
 # Source the output handling script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+: "${DEBUG_MODE:=false}"
 # shellcheck source=./shave-output.sh  # Essential for logging and output handling
 # shellcheck disable=SC1091  # File path is dynamically determined at runtime
 . "$SCRIPT_DIR/shave-output.sh"

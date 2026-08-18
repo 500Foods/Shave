@@ -4,11 +4,26 @@ This is the very start of a Bash-to-C transpiler. Why? Well, lots of bash script
 
 ## Table of Contents
 
-- [Recipe for Success](./RECIPE.md) - Guidelines for working on the Shave project, including shellcheck issue handling.
+- [Agents](./AGENTS.md) - Binding project opinions and contributor rules.
 - [Requirements](./docs/REQUIREMENTS.md) - Details the tools and environment needed to run Shave.
 - [Releases](./releases/RELEASES.md) - Chronological summary of all Shave releases.
 - [Sitemap](./SITEMAP.md) - Directory of all Markdown files within the Shave project.
-- [Testing](./TESTING.md) - How to run and add tests with `./tests/run-tests.sh`.
+- [Testing](./TESTING.md) - Current suite, how to add tests, and the plan for growing coverage.
+
+## Layout
+
+- `shave/` is the transpiler itself: Bash scripts plus C sources.
+- `shave-libs/` is for in-process replacements of frequent externals (`wc`, `cat`, and the like) so generated C does not fork the way Bash does.
+- `tests/fixtures/` holds stable bash samples for later transpile comparison. Do not put those in `shave/`.
+- `tests/unity/framework/` is the committed Unity 2.6.1 copy. Build trees stay local and gitignored.
+
+## Testing
+
+```bash
+./tests/run-tests.sh
+```
+
+`0000` builds the CMake project, remaining suites run in parallel, and `9999` prints a cloc table at the end. A single id such as `./tests/run-tests.sh 0004` runs that suite alone. See [TESTING.md](./TESTING.md).
 
 ## Additional Notes
 
@@ -20,43 +35,13 @@ If you find this work interesting, helpful, or valuable, or that it has saved yo
 
 ## Latest Test Results
 
+Run `./tests/run-tests.sh` for the current summary table and cloc report. The July 2025 figures below are from the retired `oldtests/` suite and are no longer generated automatically.
+
+### Last archived oldtests run
+
 Generated on: Mon Jul  7 02:47:52 PDT 2025
-
-### Summary
-
-| Metric | Value |
-| ------ | ----- |
-| Total Tests | 2 |
-| Passed | 2 |
-| Failed | 0 |
-| Skipped | 0 |
-| Total Subtests | 15 |
-| Passed Subtests | 15 |
-| Failed Subtests | 0 |
-| Elapsed Time | 00:00:06.766 |
-| Running Time | 00:00:09.827 |
-
-### Individual Test Results
 
 | Status | Time | Test | Tests | Pass | Fail |
 | ------ | ---- | ---- | ----- | ---- | ---- |
 | ✅ | 00:00:03.370 | 90_markdown_links_check | 4 | 4 | 0 |
 | ✅ | 00:00:06.457 | 99_static_codebase_analysis | 11 | 11 | 0 |
-
-## Repository Information
-
-Generated via cloc: Mon Jul  7 02:47:52 PDT 2025
-
-```cloc
--------------------------------------------------------------------------------
-Language                     files          blank        comment           code
--------------------------------------------------------------------------------
-Bourne Shell                    33           1027           1179           8884
-Markdown                        23           1702             45           4228
-YAML                             1              0              0              2
--------------------------------------------------------------------------------
-SUM:                            57           2729           1224          13114
--------------------------------------------------------------------------------
-
-CodeDoc: 2.1    CodeComment: 7.5
-```

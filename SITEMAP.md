@@ -5,11 +5,7 @@ This document serves as a directory of all Markdown files within the Shave proje
 ## Project Documentation
 
 - [README](./README.md) - Overview of the Shave Bash-to-C transpiler project.
-- [Recipe for Success](./RECIPE.md) - Guidelines for working on the Shave project
+- [Agents](./AGENTS.md) - Binding project opinions and contributor rules.
 - [Requirements](./docs/REQUIREMENTS.md) - Details the tools and environment needed to run Shave.
-- [Testing](./TESTING.md) - How to run the suite, add numbered test.sh suites, and read results.
+- [Testing](./TESTING.md) - Current suite, how to add tests, and the coverage plan. `0001` is the CLI missing-input contract.
 - [Releases](./releases/RELEASES.md) - Chronological summary of all Shave releases.
-
-## Testing Documentation
-
-- [Testing](./TESTING.md) - How to run the suite, add numbered test.sh suites, and read results.

@@ -3,6 +3,8 @@
 # Runs first and sequentially. Remaining suites assume this passed
 #
 # CHANGELOG
+# 1.3.0 - 2026-08-18 - C sources live in shave/; Unity lives in tests/unity/framework
+# 1.2.0 - 2026-08-18 - Also build Unity test binaries
 # 1.1.0 - 2026-08-18 - Replace ad-hoc toolchain probe with CMake configure and build
 # 1.0.0 - 2026-08-18 - Initial environment and toolchain gate
 
@@ -22,11 +24,14 @@ shave_test_init "0000" "cmake_build"
 VERSION_FILE="${REPO_ROOT}/VERSION"
 BUILD_DIR="${REPO_ROOT}/build"
 VERSION_BIN="${BUILD_DIR}/shave-version"
+UNITY_BIN="${BUILD_DIR}/tests/test_version"
 
 shave_assert_cmd cmake "cmake is available"
 shave_assert_cmd gcc "gcc is available"
 shave_assert_file "${REPO_ROOT}/CMakeLists.txt" "CMakeLists.txt exists"
 shave_assert_file "${VERSION_FILE}" "VERSION file exists"
+shave_assert_file "${REPO_ROOT}/shave/version.c" "C sources live in shave/"
+shave_assert_file "${REPO_ROOT}/tests/unity/framework/unity.c" "Unity framework is vendored in-tree"
 
 expected_version=""
 expected_version="$(tr -d '[:space:]' < "${VERSION_FILE}")"
@@ -53,6 +58,8 @@ if [[ -x "${VERSION_BIN}" ]]; then
     built_version="$("${VERSION_BIN}" 2>/dev/null || true)"
     shave_assert_eq "${expected_version}" "${built_version}" "built version matches VERSION file"
 fi
+
+shave_assert_exec "${UNITY_BIN}" "Unity test_version was built"
 
 shave_test_finish
 exit $?

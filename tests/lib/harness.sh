@@ -2,6 +2,7 @@
 # Shave Test Harness: Shared helpers for numbered test.sh scripts
 #
 # CHANGELOG
+# 1.2.0 - 2026-08-18 - Add Unity runner helper
 # 1.1.0 - 2026-08-18 - RESULT line remains the suite contract for run-tests.sh
 # 1.0.1 - 2026-08-18 - Drop unused repo-root helper
 # 1.0.0 - 2026-08-18 - Initial harness for pass/fail/skip reporting
@@ -113,6 +114,61 @@ shave_assert_status() {
     local actual="$2"
     local msg="${3:-exit status $expected}"
     shave_assert_eq "$expected" "$actual" "$msg"
+}
+
+shave_run_unity() {
+    local binary="$1"
+    local output=""
+    local status=0
+    local summary=""
+    local tests=0
+    local failures=0
+    local ignored=0
+    local seen=0
+    local line name result
+
+    output="$("${binary}" 2>&1)" || status=$?
+    printf '%s\n' "${output}"
+
+    while IFS= read -r line; do
+        if [[ "${line}" =~ :([^:]+):(PASS|FAIL|IGNORE) ]]; then
+            name="${BASH_REMATCH[1]}"
+            result="${BASH_REMATCH[2]}"
+            seen=$((seen + 1))
+            case "${result}" in
+                PASS) shave_pass "unity ${name}" ;;
+                FAIL) shave_fail "unity ${name}" ;;
+                IGNORE) shave_skip "unity ${name}" ;;
+            esac
+        fi
+    done <<< "${output}"
+
+    summary="$(printf '%s\n' "${output}" | grep -E '[0-9]+ Tests [0-9]+ Failures [0-9]+ Ignored' | tail -n 1 || true)"
+    if [[ "${summary}" =~ ([0-9]+)[[:space:]]+Tests[[:space:]]+([0-9]+)[[:space:]]+Failures[[:space:]]+([0-9]+)[[:space:]]+Ignored ]]; then
+        tests="${BASH_REMATCH[1]}"
+        failures="${BASH_REMATCH[2]}"
+        ignored="${BASH_REMATCH[3]}"
+        if [[ "${seen}" -eq 0 ]]; then
+            if [[ "${failures}" -eq 0 && "${status}" -eq 0 ]]; then
+                shave_pass "Unity ${tests} tests, ${failures} failures, ${ignored} ignored"
+            elif [[ "${failures}" -gt 0 ]]; then
+                shave_fail "Unity reported ${failures} failure(s)"
+            else
+                shave_fail "Unity binary exited ${status}"
+            fi
+        elif [[ "${failures}" -gt 0 && "${status}" -ne 0 ]]; then
+            :
+        elif [[ "${status}" -ne 0 ]]; then
+            shave_fail "Unity binary exited ${status}"
+        fi
+    else
+        if [[ "${seen}" -eq 0 ]]; then
+            shave_fail "Unity summary line not found"
+        fi
+        if [[ "${status}" -ne 0 && "${SHAVE_TEST_FAIL}" -eq 0 ]]; then
+            shave_fail "Unity binary exited ${status}"
+        fi
+    fi
 }
 
 shave_test_finish() {

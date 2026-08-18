@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Test 0001: Bash comparison smoke
+# Test 0001: CLI missing input
 #
 # CHANGELOG
+# 1.1.0 - 2026-08-18 - Drop hello-world bash run; keep durable CLI contract
 # 1.0.0 - 2026-08-18 - Initial bash comparison and CLI smoke test
 
 set -u
@@ -15,19 +16,11 @@ REPO_ROOT="$(cd "$TESTS_DIR/.." && pwd)"
 # Justification: harness path is derived from this suite directory at runtime
 source "$TESTS_DIR/lib/harness.sh"
 
-shave_test_init "0001" "bash_compare_smoke"
+shave_test_init "0001" "cli_missing_input"
 
 SHAVE_SH="$REPO_ROOT/shave/shave.sh"
-SAMPLE="$REPO_ROOT/shave/shave-test.sh"
-
-shave_assert_file "$SAMPLE" "sample script exists"
-shave_assert_exec "$SAMPLE" "sample script is executable"
-
-sample_out=""
-sample_status=0
-sample_out="$("$SAMPLE" 2>&1)" || sample_status=$?
-shave_assert_status 0 "$sample_status" "sample script exits 0"
-shave_assert_eq "Hello World!" "$sample_out" "sample script prints Hello World!"
+shave_assert_file "$SHAVE_SH" "shave.sh exists"
+shave_assert_exec "$SHAVE_SH" "shave.sh is executable"
 
 missing_out=""
 missing_status=0

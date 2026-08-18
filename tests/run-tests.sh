@@ -3,6 +3,13 @@
 # Runs tests/0000 first, then remaining numbered suites in parallel via xargs
 #
 # CHANGELOG
+# 1.6.2 - 2026-08-18 - Escape JSON in bash; Python is banned
+# 1.6.1 - 2026-08-18 - Bold totals row, title, and footer
+# 1.6.0 - 2026-08-18 - Totals row with count, name, time, status; colored title
+# 1.5.1 - 2026-08-18 - Drop unused nameref in parse_selector_token
+# 1.5.0 - 2026-08-18 - Single-suite selection runs standalone without 0000 or summary
+# 1.4.0 - 2026-08-18 - Run 9999 last and print its cloc table after the summary
+# 1.3.0 - 2026-08-18 - Separator every ten rows; Unity suites
 # 1.2.0 - 2026-08-18 - CMake 0000, selector syntax, colored footer, Fail+Skip exit
 # 1.1.0 - 2026-08-18 - xargs parallelism, tables summary, per-test logs
 # 1.0.0 - 2026-08-18 - Initial orchestrator for numbered test.sh suites
@@ -43,7 +50,9 @@ Selectors:
   1,4-6,9            Mix sets and ranges
 
 Numbers may be given with or without leading zeros.
-0000 still runs first unless --skip-0000 is set.
+A single selected suite runs standalone: no 0000 gate, no summary table,
+and no cloc table. Selecting multiple suites still runs 0000 first unless
+--skip-0000 is set.
 EOF
 }
 
@@ -146,8 +155,8 @@ add_unique_id() {
 
 parse_selector_token() {
     local token="$1"
+    local dest_name="$2"
     local part start_raw end_raw start_id end_id start_num end_num id
-    local -n parsed=$2
 
     IFS=',' read -r -a parts <<< "${token}"
     if [[ ${#parts[@]} -eq 0 ]]; then
@@ -173,7 +182,7 @@ parse_selector_token() {
             fi
             for id in "${SUITES[@]}"; do
                 if (( 10#${id} >= start_num && 10#${id} <= end_num )); then
-                    add_unique_id parsed "${id}"
+                    add_unique_id "${dest_name}" "${id}"
                 fi
             done
         elif [[ "${part}" =~ ^[0-9]+$ ]]; then
@@ -182,7 +191,7 @@ parse_selector_token() {
                 echo "Error: test suite not found: ${id}" >&2
                 return 1
             fi
-            add_unique_id parsed "${id}"
+            add_unique_id "${dest_name}" "${id}"
         else
             echo "Error: invalid test selector '${part}'" >&2
             return 1
@@ -229,7 +238,21 @@ elapsed_since() {
 }
 
 json_escape() {
-    python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '"%s"' "${s}"
+}
+
+read_result_field() {
+    local file="$1"
+    local key="$2"
+    local line
+    line="$(grep -E "^${key}=" "${file}" 2>/dev/null | tail -n 1 || true)"
+    printf '%s' "${line#*=}"
 }
 
 clear_logs() {
@@ -347,16 +370,53 @@ if [[ ${#SELECTED[@]} -gt 0 ]]; then
         echo "Error: no test suites matched the given selector" >&2
         exit 2
     fi
+
+    if [[ ${#REQUESTED_IDS[@]} -eq 1 ]]; then
+        standalone_id="${REQUESTED_IDS[0]}"
+        mkdir -p "${LOGS_DIR}"
+        run_suite "${standalone_id}" || true
+        logfile="$(suite_log_dir "${standalone_id}")/test.log"
+        if [[ -f "${logfile}" ]]; then
+            cat "${logfile}"
+        fi
+        result_file="$(suite_log_dir "${standalone_id}")/result.txt"
+        failed=0
+        skipped=0
+        if [[ -f "${result_file}" ]]; then
+            failed="$(read_result_field "${result_file}" failed)"
+            skipped="$(read_result_field "${result_file}" skipped)"
+        fi
+        if [[ ! "${failed}" =~ ^[0-9]+$ ]]; then failed=1; fi
+        if [[ ! "${skipped}" =~ ^[0-9]+$ ]]; then skipped=0; fi
+        if [[ "${failed}" -eq 0 && "${skipped}" -eq 0 ]]; then
+            exit 0
+        fi
+        exit_code=$((failed + skipped))
+        if [[ "${exit_code}" -le 0 ]]; then
+            exit_code=1
+        fi
+        if [[ "${exit_code}" -gt 255 ]]; then
+            exit_code=255
+        fi
+        exit "${exit_code}"
+    fi
+
     PARALLEL_IDS=()
+    RUN_9999=false
     for id in "${REQUESTED_IDS[@]}"; do
-        if [[ "${id}" != "0000" ]]; then
+        if [[ "${id}" == "9999" ]]; then
+            RUN_9999=true
+        elif [[ "${id}" != "0000" ]]; then
             PARALLEL_IDS+=("${id}")
         fi
     done
 else
     PARALLEL_IDS=()
+    RUN_9999=false
     for id in "${SUITES[@]}"; do
-        if [[ "${id}" != "0000" ]]; then
+        if [[ "${id}" == "9999" ]]; then
+            RUN_9999=true
+        elif [[ "${id}" != "0000" ]]; then
             PARALLEL_IDS+=("${id}")
         fi
     done
@@ -423,13 +483,12 @@ if [[ "${OVERALL}" -eq 0 && ${#PARALLEL_IDS[@]} -gt 0 ]]; then
     fi
 fi
 
-read_result_field() {
-    local file="$1"
-    local key="$2"
-    local line
-    line="$(grep -E "^${key}=" "${file}" 2>/dev/null | tail -n 1 || true)"
-    printf '%s' "${line#*=}"
-}
+if [[ "${RUN_9999}" == true ]]; then
+    if ! run_suite 9999; then
+        OVERALL=1
+    fi
+    RUN_IDS+=(9999)
+fi
 
 TOTAL_ELAPSED="$(elapsed_since "${SUITE_START}")"
 TOTAL_SUITES=${#RUN_IDS[@]}
@@ -481,15 +540,33 @@ for i in "${!RUN_IDS[@]}"; do
     if [[ "${i}" -gt 0 ]]; then
         DATA_ROWS+=","
     fi
-    DATA_ROWS+="$(printf '{"test":%s,"name":%s,"time":%s,"pass":%s,"fail":%s,"skip":%s,"status":%s}' \
+    DATA_ROWS+="$(printf '{"group":%s,"test":%s,"name":%s,"time":%s,"pass":%s,"fail":%s,"skip":%s,"status":%s}' \
+        "$((10#${id} / 10))" \
         "$(json_escape "${id}")" \
         "$(json_escape "${name}")" \
-        "${elapsed}" \
-        "${passed}" \
-        "${failed}" \
-        "${skipped}" \
+        "$(json_escape "$(printf '%.3f' "${elapsed}")")" \
+        "$(json_escape "${passed}")" \
+        "$(json_escape "${failed}")" \
+        "$(json_escape "${skipped}")" \
         "$(json_escape "${color_status}")")"
 done
+
+overall_status="{GREEN}{BOLD}PASS{RESET}"
+if [[ "${FAILED_SUITES}" -gt 0 || "${TOTAL_FAIL}" -gt 0 || "${TOTAL_SKIP}" -gt 0 ]]; then
+    overall_status="{RED}{BOLD}FAIL{RESET}"
+fi
+if [[ "${TOTAL_SUITES}" -gt 0 ]]; then
+    DATA_ROWS+=","
+fi
+DATA_ROWS+="$(printf '{"group":%s,"test":%s,"name":%s,"time":%s,"pass":%s,"fail":%s,"skip":%s,"status":%s}' \
+    1000 \
+    "$(json_escape "{WHITE}$(printf '%04d' "${TOTAL_SUITES}"){RESET}")" \
+    "$(json_escape "{WHITE}Test Suite Totals{RESET}")" \
+    "$(json_escape "{WHITE}${SUM_RUN}{RESET}")" \
+    "$(json_escape "{WHITE}${TOTAL_PASS}{RESET}")" \
+    "$(json_escape "{WHITE}${TOTAL_FAIL}{RESET}")" \
+    "$(json_escape "{WHITE}${TOTAL_SKIP}{RESET}")" \
+    "$(json_escape "${overall_status}")")"
 DATA_ROWS+="]"
 
 PERCENT=0
@@ -497,8 +574,8 @@ if [[ "${TOTAL_SUITES}" -gt 0 ]]; then
     PERCENT="$(awk -v p="${PASSED_SUITES}" -v t="${TOTAL_SUITES}" 'BEGIN { printf "%.0f", (p * 100) / t }')"
 fi
 
-TITLE="Shave v$(project_version) Results for $(date '+%Y-%b-%d')"
-FOOTER="{CYAN}Wall{RESET} {WHITE}${TOTAL_ELAPSED}s{RESET} {YELLOW}───{RESET} {CYAN}Run{RESET} {WHITE}${SUM_RUN}s{RESET} {YELLOW}───{RESET} {WHITE}${PASSED_SUITES}{RESET} {CYAN}passed{RESET} {YELLOW}/{RESET} {WHITE}${FAILED_SUITES}{RESET} {CYAN}failed{RESET} {YELLOW}({RESET}{WHITE}${PERCENT}%{RESET}{YELLOW}){RESET}"
+TITLE="{CYAN}{BOLD}Shave{RESET} {WHITE}v$(project_version){RESET} {CYAN}{BOLD}Results for{RESET} {WHITE}$(date '+%Y-%b-%d'){RESET}"
+FOOTER="{CYAN}{BOLD}Wall{RESET} {WHITE}${TOTAL_ELAPSED}s{RESET} {YELLOW}{BOLD}───{RESET} {CYAN}{BOLD}Run{RESET} {WHITE}${SUM_RUN}s{RESET} {YELLOW}{BOLD}───{RESET} {WHITE}${PASSED_SUITES}{RESET} {CYAN}{BOLD}passed{RESET} {YELLOW}{BOLD}/{RESET} {WHITE}${FAILED_SUITES}{RESET} {CYAN}{BOLD}failed{RESET} {YELLOW}{BOLD}({RESET}{WHITE}${PERCENT}%{RESET}{YELLOW}{BOLD}){RESET}"
 
 LAYOUT_FILE="$(mktemp "${LOGS_DIR}/layout.XXXXXX.json")"
 DATA_FILE="$(mktemp "${LOGS_DIR}/data.XXXXXX.json")"
@@ -512,12 +589,13 @@ cat >"${LAYOUT_FILE}" <<EOF
   "footer": $(json_escape "${FOOTER}"),
   "footer_position": "right",
   "columns": [
+    {"header": "Group", "key": "group", "datatype": "int", "visible": false, "break": true},
     {"header": "Test", "key": "test", "datatype": "text", "justification": "left"},
     {"header": "Name", "key": "name", "datatype": "text", "justification": "left"},
-    {"header": "Time", "key": "time", "datatype": "float", "justification": "right", "format": "%.3f"},
-    {"header": "Pass", "key": "pass", "datatype": "int", "justification": "right", "zero_value": "0", "summary": "sum"},
-    {"header": "Fail", "key": "fail", "datatype": "int", "justification": "right", "zero_value": "0", "summary": "sum"},
-    {"header": "Skip", "key": "skip", "datatype": "int", "justification": "right", "zero_value": "0", "summary": "sum"},
+    {"header": "Time", "key": "time", "datatype": "text", "justification": "right"},
+    {"header": "Pass", "key": "pass", "datatype": "text", "justification": "right", "zero_value": "0"},
+    {"header": "Fail", "key": "fail", "datatype": "text", "justification": "right", "zero_value": "0"},
+    {"header": "Skip", "key": "skip", "datatype": "text", "justification": "right", "zero_value": "0"},
     {"header": "Status", "key": "status", "datatype": "text", "justification": "center"}
   ]
 }
@@ -525,6 +603,12 @@ EOF
 
 printf '%s\n' "${DATA_ROWS}" >"${DATA_FILE}"
 tables "${LAYOUT_FILE}" "${DATA_FILE}"
+
+CLOC_TABLE="$(suite_log_dir 9999)/cloc.table"
+if [[ -s "${CLOC_TABLE}" ]]; then
+    echo
+    cat "${CLOC_TABLE}"
+fi
 
 if [[ "${OVERALL}" -eq 0 && "${TOTAL_FAIL}" -eq 0 && "${TOTAL_SKIP}" -eq 0 ]]; then
     exit 0
