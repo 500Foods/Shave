@@ -19,7 +19,8 @@ The live suite is `./tests/run-tests.sh`. See TESTING.md before adding or changi
 - Run `./tests/run-tests.sh` after any major update.
 - Run `./tests/run-tests.sh NNNN` to iterate on one suite. That path does not run 0000 and does not print the summary table.
 - Add new coverage as `tests/NNNN/test.sh`.
-- 0000 is the CMake build gate. 9999 is the sequential cloc trailer. Everything else must be safe to run in parallel.
+- 0000 is the CMake build gate. 9998 is the sequential gcov trailer. 9999 is the sequential cloc trailer. Everything else must be safe to run in parallel.
+- **shave-libs gcov >= 50%.** Suite 9998 fails any instrumented `shave-libs` source under 50% line coverage. New library code must keep that gate green.
 - 0001 is the durable CLI missing-input contract. Shared transpile samples live in `tests/fixtures/`. Suite comparison scripts live beside that suite's `test.sh`.
 - `shave/shave` is the product CLI. `shave/` is the transpiler (Bash and C). `shave-libs/` is for in-process replacements of frequent externals so generated C does not fork.
 - Unity lives in `tests/unity/framework/`. Build trees stay local and gitignored.

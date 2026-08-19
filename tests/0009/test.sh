@@ -2,6 +2,7 @@
 # Test 0009: Wc
 #
 # CHANGELOG
+# 1.1.0 - 2026-08-18 - Assert the shared wc library
 # 1.0.3 - 2026-08-18 - shave/shave wc.sh, then compare binary to script
 #
 # Runs the Unity contract for the reusable wc library, then runs
@@ -36,9 +37,9 @@ UNITY_BIN="${REPO_ROOT}/build/tests/test_wc"
 FIXTURE_SH="${TEST_DIR}/wc.sh"
 FIXTURE_C="${TEST_DIR}/wc.c"
 FIXTURE_BIN="${TEST_DIR}/wc"
-LIB_A="${REPO_ROOT}/build/libshave_wc.a"
+LIB_SO="${REPO_ROOT}/build/libshave_wc.so"
 
-shave_assert_file "${LIB_A}" "shave_wc archive exists"
+shave_assert_file "${LIB_SO}" "shave_wc shared library exists"
 shave_assert_file "${SHAVE_BIN}" "shave/shave exists"
 shave_assert_exec "${SHAVE_BIN}" "shave/shave is executable"
 shave_assert_file "${UNITY_BIN}" "Unity wc binary exists"

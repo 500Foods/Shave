@@ -11,7 +11,7 @@ This is the very start of a Bash-to-C transpiler. Why? Well, lots of bash script
 ## Layout
 
 - `shave/shave` is the product CLI. `shave/` also holds the transpiler modules and C sources.
-- `shave-libs/` is for in-process replacements of frequent externals (`shave_wc`, `shave_echo_builtin`, `shave_printf_builtin`) so generated C does not fork the way Bash does. Generated apps link those libs; the transpiler itself does not.
+- `shave-libs/` is for in-process replacements of frequent externals (`shave_wc`, `shave_echo_builtin`, `shave_printf_builtin`) so generated C does not fork the way Bash does. Generated apps link those shared libraries; the transpiler itself does not.
 - `tests/NNNN/` holds the harness (`test.sh`) plus any comparison samples for that suite. Echo/printf live in 0005/0006. The first loop sample is 0008. Wc is 0009.
 - `tests/fixtures/` holds shared later-transpile samples such as `hello-world.sh`. Do not put those in `shave/`.
 - `tests/unity/framework/` is the committed Unity 2.6.1 copy. Build trees stay local and gitignored.
@@ -32,7 +32,7 @@ Defaults write the binary and keep `<output>.c`. Unchanged bash, toolchain, and 
 - Bash, CMake, GCC
 - UPX, to compress generated executables
 - Node.js and `tree-sitter-cli`, for CST parsing
-- For the suite: `tables`, `jq`, `cloc`, `cppcheck`, `shellcheck`
+- For the suite: `tables`, `jq`, `cloc`, `gcov`, `cppcheck`, `shellcheck`
 
 No Python. Self-hosting (Shave compiling Shave) comes later; see TESTING.md.
 
@@ -42,7 +42,7 @@ No Python. Self-hosting (Shave compiling Shave) comes later; see TESTING.md.
 ./tests/run-tests.sh
 ```
 
-`0000` builds the CMake project, remaining suites run in parallel, and `9999` prints a cloc table at the end. A single id such as `./tests/run-tests.sh 0004` runs that suite alone. See [TESTING.md](./TESTING.md).
+`0000` builds the CMake project, remaining suites run in parallel, `9998` prints a gcov table, and `9999` prints a cloc table. A single id such as `./tests/run-tests.sh 0004` runs that suite alone. See [TESTING.md](./TESTING.md).
 
 ## Additional Notes
 

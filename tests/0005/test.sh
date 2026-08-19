@@ -2,6 +2,7 @@
 # Test 0005: Echo builtin
 #
 # CHANGELOG
+# 1.5.0 - 2026-08-18 - Assert the shared echo library
 # 1.4.0 - 2026-08-18 - shave/shave echo-builtin.sh, then compare binary to script
 # 1.3.0 - 2026-08-18 - Shave compiler builds tests/0005/echo-builtin from echo-builtin.c
 # 1.2.0 - 2026-08-18 - Compare tests/0005/echo-builtin binary to echo-builtin.sh
@@ -40,9 +41,9 @@ UNITY_BIN="${REPO_ROOT}/build/tests/test_echo_builtin"
 FIXTURE_SH="${TEST_DIR}/echo-builtin.sh"
 FIXTURE_C="${TEST_DIR}/echo-builtin.c"
 FIXTURE_BIN="${TEST_DIR}/echo-builtin"
-LIB_A="${REPO_ROOT}/build/libshave_echo_builtin.a"
+LIB_SO="${REPO_ROOT}/build/libshave_echo_builtin.so"
 
-shave_assert_file "${LIB_A}" "shave_echo_builtin archive exists"
+shave_assert_file "${LIB_SO}" "shave_echo_builtin shared library exists"
 shave_assert_file "${SHAVE_BIN}" "shave/shave exists"
 shave_assert_exec "${SHAVE_BIN}" "shave/shave is executable"
 shave_assert_file "${UNITY_BIN}" "Unity echo binary exists"

@@ -3,6 +3,7 @@
 # Runs first and sequentially. Remaining suites assume this passed
 #
 # CHANGELOG
+# 1.1.0 - 2026-08-18 - Build shared shave-libs with gcov and drop stale .gcda
 # 1.0.3 - 2026-08-18 - Build shave_wc archive and Unity binary
 # 1.7.0 - 2026-08-18 - CMake no longer builds echo/printf comparison binaries
 # 1.6.2 - 2026-08-18 - Echo fixture binary lives beside tests/0005/echo-builtin.sh
@@ -32,11 +33,11 @@ VERSION_FILE="${REPO_ROOT}/VERSION"
 BUILD_DIR="${REPO_ROOT}/build"
 VERSION_BIN="${BUILD_DIR}/shave-version"
 UNITY_BIN="${BUILD_DIR}/tests/test_version"
-ECHO_LIB="${BUILD_DIR}/libshave_echo_builtin.a"
+ECHO_LIB="${BUILD_DIR}/libshave_echo_builtin.so"
 ECHO_UNITY_BIN="${BUILD_DIR}/tests/test_echo_builtin"
-PRINTF_LIB="${BUILD_DIR}/libshave_printf_builtin.a"
+PRINTF_LIB="${BUILD_DIR}/libshave_printf_builtin.so"
 PRINTF_UNITY_BIN="${BUILD_DIR}/tests/test_printf_builtin"
-WC_LIB="${BUILD_DIR}/libshave_wc.a"
+WC_LIB="${BUILD_DIR}/libshave_wc.so"
 WC_UNITY_BIN="${BUILD_DIR}/tests/test_wc"
 
 shave_assert_cmd cmake "cmake is available"
@@ -57,7 +58,7 @@ fi
 mkdir -p "${BUILD_DIR}"
 
 configure_status=0
-cmake -S "${REPO_ROOT}" -B "${BUILD_DIR}" || configure_status=$?
+cmake -S "${REPO_ROOT}" -B "${BUILD_DIR}" -DSHAVE_COVERAGE=ON || configure_status=$?
 shave_assert_status 0 "${configure_status}" "cmake configure succeeds"
 
 build_status=0
@@ -73,12 +74,19 @@ if [[ -x "${VERSION_BIN}" ]]; then
 fi
 
 shave_assert_exec "${UNITY_BIN}" "Unity test_version was built"
-shave_assert_file "${ECHO_LIB}" "shave_echo_builtin archive was built"
+shave_assert_file "${ECHO_LIB}" "shave_echo_builtin shared library was built"
 shave_assert_exec "${ECHO_UNITY_BIN}" "Unity test_echo_builtin was built"
-shave_assert_file "${PRINTF_LIB}" "shave_printf_builtin archive was built"
+shave_assert_file "${PRINTF_LIB}" "shave_printf_builtin shared library was built"
 shave_assert_exec "${PRINTF_UNITY_BIN}" "Unity test_printf_builtin was built"
-shave_assert_file "${WC_LIB}" "shave_wc archive was built"
+shave_assert_file "${WC_LIB}" "shave_wc shared library was built"
 shave_assert_exec "${WC_UNITY_BIN}" "Unity test_wc was built"
+
+gcda_count=0
+while IFS= read -r gcda; do
+    rm -f "${gcda}"
+    gcda_count=$((gcda_count + 1))
+done < <(find "${BUILD_DIR}" -name '*.gcda' -type f 2>/dev/null || true)
+shave_pass "cleared ${gcda_count} stale gcov data files"
 
 shave_test_finish
 exit $?

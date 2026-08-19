@@ -2,6 +2,7 @@
 # Shave Compiler: Handles compilation of generated C code to executable.
 #
 # CHANGELOG
+# 1.3.0 - 2026-08-18 - Link shared shave-libs and embed rpath
 # 1.2.2 - 2026-08-18 - Fingerprint the shave/shave product CLI
 # 1.2.1 - 2026-08-18 - Safe to source under set -u via output defaults
 # 1.2.0 - 2026-08-18 - Link shave-libs, SHAVE_* overrides, skip unchanged builds
@@ -76,13 +77,16 @@ shave_hash_files() {
 shave_collect_libs() {
     SHAVE_INCLUDE_FLAGS=()
     SHAVE_LIB_SOURCES=()
+    SHAVE_LIB_SHARED=()
     SHAVE_LIB_ARCHIVES=()
     SHAVE_LIB_HASH_FILES=()
+    SHAVE_LIB_RPATH=""
 
     local root="${SHAVE_ROOT:-}"
     local libdir="${SHAVE_LIBDIR:-}"
     local dir=""
     local c_file=""
+    local so_file=""
     local a_file=""
     local name=""
     local saved_nullglob=""
@@ -104,12 +108,17 @@ shave_collect_libs() {
         for c_file in "${dir}"shave_*.c; do
             [[ -f "${c_file}" ]] || continue
             name="$(basename "${c_file}" .c)"
+            so_file="${libdir}/lib${name}.so"
             a_file="${libdir}/lib${name}.a"
             SHAVE_LIB_HASH_FILES+=("${c_file}")
             if [[ -f "${dir}${name}.h" ]]; then
                 SHAVE_LIB_HASH_FILES+=("${dir}${name}.h")
             fi
-            if [[ -f "${a_file}" ]]; then
+            if [[ -f "${so_file}" ]]; then
+                SHAVE_LIB_SHARED+=("${so_file}")
+                SHAVE_LIB_HASH_FILES+=("${so_file}")
+                SHAVE_LIB_RPATH="${libdir}"
+            elif [[ -f "${a_file}" ]]; then
                 SHAVE_LIB_ARCHIVES+=("${a_file}")
                 SHAVE_LIB_HASH_FILES+=("${a_file}")
             else
@@ -174,6 +183,7 @@ shave_tool_fingerprint() {
         "ldflags=${extra_ldflags}" \
         "includes=${SHAVE_INCLUDE_FLAGS[*]-}" \
         "sources=${SHAVE_LIB_SOURCES[*]-}" \
+        "shared=${SHAVE_LIB_SHARED[*]-}" \
         "archives=${SHAVE_LIB_ARCHIVES[*]-}" \
         "c=${c_source_file}" \
         "bin=${output_executable}" \
@@ -207,6 +217,7 @@ compile_c_to_executable() {
     local -a extra_ldflags=()
     local -a compile_cmd=()
     local -a upx_flags=()
+    local rpath_flag=""
     local output_dir=""
     local flag=""
     local size_before=""
@@ -252,6 +263,13 @@ compile_c_to_executable() {
     compile_cmd+=(-o "${output_executable}" "${c_source_file}")
     if [[ "${#SHAVE_LIB_SOURCES[@]}" -gt 0 ]]; then
         compile_cmd+=("${SHAVE_LIB_SOURCES[@]}")
+    fi
+    if [[ "${#SHAVE_LIB_SHARED[@]}" -gt 0 ]]; then
+        compile_cmd+=("${SHAVE_LIB_SHARED[@]}")
+    fi
+    if [[ -n "${SHAVE_LIB_RPATH}" ]]; then
+        rpath_flag="-Wl,-rpath,${SHAVE_LIB_RPATH}"
+        compile_cmd+=("${rpath_flag}")
     fi
     if [[ "${#SHAVE_LIB_ARCHIVES[@]}" -gt 0 ]]; then
         compile_cmd+=("${SHAVE_LIB_ARCHIVES[@]}")

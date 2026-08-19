@@ -10,6 +10,16 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 option(SHAVE_BUILD_TESTS "Build Unity tests" ON)
+option(SHAVE_COVERAGE "Instrument shave-libs with gcov" ON)
+
+set(CMAKE_BUILD_RPATH "${CMAKE_BINARY_DIR}")
+
+function(shave_lib_coverage target)
+    if(SHAVE_COVERAGE)
+        target_compile_options(${target} PRIVATE --coverage -O0 -g)
+        target_link_options(${target} PRIVATE --coverage)
+    endif()
+endfunction()
 
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/shave/version.h.in"
@@ -26,18 +36,21 @@ target_link_libraries(shave-version PRIVATE shave_version_info)
 
 add_subdirectory(shave-libs/shave_echo_builtin)
 set_target_properties(shave_echo_builtin PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
+shave_lib_coverage(shave_echo_builtin)
 
 add_subdirectory(shave-libs/shave_printf_builtin)
 set_target_properties(shave_printf_builtin PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
+shave_lib_coverage(shave_printf_builtin)
 
 add_subdirectory(shave-libs/shave_wc)
 set_target_properties(shave_wc PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
+shave_lib_coverage(shave_wc)
 
 if(SHAVE_BUILD_TESTS)
     add_library(unity STATIC tests/unity/framework/unity.c)

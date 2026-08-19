@@ -2,6 +2,7 @@
 # Test 0006: Printf builtin
 #
 # CHANGELOG
+# 1.4.0 - 2026-08-18 - Assert the shared printf library
 # 1.3.0 - 2026-08-18 - shave/shave printf-builtin.sh, then compare binary to script
 # 1.2.0 - 2026-08-18 - Shave compiler builds tests/0006/printf-builtin from printf-builtin.c
 # 1.1.0 - 2026-08-18 - Comparison samples live beside this harness
@@ -39,9 +40,9 @@ UNITY_BIN="${REPO_ROOT}/build/tests/test_printf_builtin"
 FIXTURE_SH="${TEST_DIR}/printf-builtin.sh"
 FIXTURE_C="${TEST_DIR}/printf-builtin.c"
 FIXTURE_BIN="${TEST_DIR}/printf-builtin"
-LIB_A="${REPO_ROOT}/build/libshave_printf_builtin.a"
+LIB_SO="${REPO_ROOT}/build/libshave_printf_builtin.so"
 
-shave_assert_file "${LIB_A}" "shave_printf_builtin archive exists"
+shave_assert_file "${LIB_SO}" "shave_printf_builtin shared library exists"
 shave_assert_file "${SHAVE_BIN}" "shave/shave exists"
 shave_assert_exec "${SHAVE_BIN}" "shave/shave is executable"
 shave_assert_file "${UNITY_BIN}" "Unity printf binary exists"

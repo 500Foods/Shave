@@ -22,9 +22,9 @@ Useful variants:
 ./tests/run-tests.sh --skip-0000 0001
 ```
 
-A single selected suite such as `./tests/run-tests.sh 0004` runs that suite alone: no 0000 gate, no summary table, and no cloc table. Only that suite's output is printed.
+A single selected suite such as `./tests/run-tests.sh 0004` runs that suite alone: no 0000 gate, no summary table, and no trailer tables. Only that suite's output is printed.
 
-A multi-suite run prints only the `tables` summary, then the 9999 cloc table. Per-suite logs go in `tests/logs/NNNN/`. Running 0000 clears `tests/logs/` first. That directory is gitignored.
+A multi-suite run prints only the `tables` summary, then the 9998 coverage table and the 9999 cloc table. Per-suite logs go in `tests/logs/NNNN/`. Running 0000 clears `tests/logs/` first. That directory is gitignored.
 
 Exit 0 only when every assertion passed. Otherwise the exit code is Fail+Skip.
 
@@ -36,6 +36,7 @@ tests/
   lib/harness.sh    Pass/fail/skip helpers and Unity runner
   lib/lint.sh       Shared exclude-list and last-result cache helpers
   lib/cloc.sh       cloc-to-tables renderer
+  lib/coverage.sh   gcov-to-tables renderer for shave-libs
   0000/test.sh      Sequential CMake build gate
   0001/test.sh      CLI missing-input contract
   0002/test.sh      Unity version parser
@@ -46,6 +47,7 @@ tests/
   0007/test.sh      CLI output defaults and unchanged skip
   0008/             Echo/printf for-loop vs Bash (test.sh plus echo-printf-loop.sh; shave/shave writes the binary)
   0009/             Wc vs GNU wc (test.sh plus wc.sh; shave/shave writes the binary)
+  9998/test.sh      Sequential gcov coverage trailer
   9999/test.sh      Final cloc table
   NNNN/test.sh      Later suites
   fixtures/         Shared later-transpile samples such as hello-world.sh
@@ -61,8 +63,8 @@ Each suite is a four-digit directory with an executable `test.sh`.
 ## Execution model
 
 1. **0000 first.** Configures and builds the CMake project, including Unity binaries. If 0000 fails, remaining suites are skipped. `--skip-0000` is for debugging only.
-2. **Parallel middle.** Every other `NNNN/test.sh` except 9999 runs via `xargs -P "$(nproc)"`. Suites must be independent.
-3. **9999 last.** Always sequential. Generates the cloc table and prints it after the summary.
+2. **Parallel middle.** Every other `NNNN/test.sh` except 9998 and 9999 runs via `xargs -P "$(nproc)"`. Suites must be independent. Each suite writes gcov data under `tests/logs/NNNN/gcda`.
+3. **9998 then 9999.** Always sequential trailers. 9998 merges gcov data from the prior suites and prints the coverage table after the summary. 9999 prints the cloc table after that.
 
 The summary table has Test, Name, Time, Pass, Fail, Skip, and Status. Name comes from the `# Test NNNN:` header in that suite's `test.sh`. Status is PASS only when every assertion passed. Any fail or skip makes the suite FAIL. A hidden `group` column inserts a separator every ten test numbers.
 
@@ -91,6 +93,7 @@ A suite is one of:
 | 0007 | CLI output and skip | Default binary plus `.c`, `-o`/`-c`, and skip when bash/toolchain/outputs are unchanged |
 | 0008 | Echo printf loop | `shave/shave` a 5-iteration `for` that calls echo and printf; byte-compare the generated binary to the script |
 | 0009 | Wc | Unity contract for `shave_wc`, then `shave/shave wc.sh` and byte-compare the generated binary to the script |
+| 9998 | Coverage | Sequential gcov report for instrumented `shave-libs` sources; PASS at >= 50% lines, FAIL below |
 | 9999 | CLOC summary | Sequential end report via `tables` |
 
 ## Adding a suite
@@ -100,7 +103,7 @@ A suite is one of:
 3. Source `tests/lib/harness.sh`.
 4. Call `shave_test_init`, assertions, then `shave_test_finish`.
 5. Keep the suite independent of siblings. Shared helpers go in `tests/lib/`.
-6. Unity and library archives belong in CMake/0000. Suite comparison binaries come from `shave/shave`, not CMake.
+6. Unity and shared libraries belong in CMake/0000. Suite comparison binaries come from `shave/shave`, not CMake.
 7. Run `./tests/run-tests.sh NNNN` while writing it, then `./tests/run-tests.sh` before finishing.
 
 ```bash
@@ -147,6 +150,7 @@ The display name comes from the `# Test NNNN:` header. Exit 0 when `failed=0`. T
 - Shellcheck suite 0004 fails on `warning` and `error` only
 - 0003 and 0004 cache last per-file results under `~/.cache/Shave/0003` and `~/.cache/Shave/0004`. Unchanged files replay the last output so a prior fail still counts as a fail. The cache is keyed by tool version and options; a key change wipes that suite's cache
 - Generated C executables are compressed with `upx -9`
+- 9998 fails any instrumented `shave-libs` source under 50% gcov line coverage. The Pass column is assertion count, not file count. The coverage table lists one row per instrumented source.
 
 ## Plan
 
@@ -160,7 +164,7 @@ Use this suite as the product grows. Do not wait until the transpiler is "done."
 - Put shared later-transpile samples under `tests/fixtures/`, not in `shave/`. `hello-world.sh` is the first shared sample. Suite-specific comparison scripts live in that suite folder beside `test.sh`.
 - 0000 must not wipe the CMake tree. `cmake --build` is incremental and should skip unchanged targets.
 - Treat 0003 and 0004 as merge gates. Fix new warnings in the same change that introduced them.
-- Leave 9999 last. If another end-of-run report is needed, add it to 9999 or add 9998 as another sequential trailer. Do not put reports in the parallel band.
+- Leave 9998 and 9999 as sequential trailers. 9998 is coverage and is a merge gate at 50% per instrumented `shave-libs` file. 9999 is cloc. Do not put reports in the parallel band.
 
 ### As codegen becomes real
 
@@ -171,7 +175,7 @@ Echo, printf, and wc generation are live from the tree-sitter CST: `shave/shave 
 3. **Unity tests** against generated C helpers once those helpers exist as libraries rather than one-off mains.
 4. **Self-hosting later**, not first. Do not make 0000 depend on Shave compiling itself until fixture comparisons are green.
 
-Number those suites in the 0010–0899 range. Keep 09xx for project-wide quality if needed. Keep 9999 as the trailer.
+Number those suites in the 0010–0899 range. Keep 09xx for project-wide quality if needed. Keep 9998 and 9999 as the trailers.
 
 ### What not to do
 

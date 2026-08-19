@@ -3,6 +3,7 @@
 # Runs tests/0000 first, then remaining numbered suites in parallel via xargs
 #
 # CHANGELOG
+# 1.7.0 - 2026-08-18 - Isolate gcov data and run 9998 before the cloc trailer
 # 1.6.4 - 2026-08-18 - Parse suite ids as decimal so 0008 is valid
 # 1.6.3 - 2026-08-18 - Create suite log dirs before writing result.txt
 # 1.6.2 - 2026-08-18 - Escape JSON in bash; Python is banned
@@ -36,7 +37,8 @@ Usage: ./tests/run-tests.sh [options] [selector ...]
 
 Runs the Shave test suite. Suite 0000 always runs first (unless skipped)
 as the CMake project build gate. Remaining suites then run in parallel
-via xargs using one worker per available core.
+via xargs using one worker per available core. Suites 9998 and 9999
+stay sequential trailers after that parallel band.
 
 Options:
   -h, --help         Show this help and exit
@@ -53,8 +55,8 @@ Selectors:
 
 Numbers may be given with or without leading zeros.
 A single selected suite runs standalone: no 0000 gate, no summary table,
-and no cloc table. Selecting multiple suites still runs 0000 first unless
---skip-0000 is set.
+and no trailer tables. Selecting multiple suites still runs 0000 first
+unless --skip-0000 is set.
 EOF
 }
 
@@ -326,6 +328,9 @@ run_suite() {
     fi
 
     mkdir -p "${log_dir}"
+    export GCOV_PREFIX="${log_dir}/gcda"
+    export GCOV_PREFIX_STRIP=0
+    mkdir -p "${GCOV_PREFIX}"
     start="$(now_seconds)"
     (
         cd "${REPO_ROOT}" || exit 1
@@ -407,9 +412,12 @@ if [[ ${#SELECTED[@]} -gt 0 ]]; then
     fi
 
     PARALLEL_IDS=()
+    RUN_9998=false
     RUN_9999=false
     for id in "${REQUESTED_IDS[@]}"; do
-        if [[ "${id}" == "9999" ]]; then
+        if [[ "${id}" == "9998" ]]; then
+            RUN_9998=true
+        elif [[ "${id}" == "9999" ]]; then
             RUN_9999=true
         elif [[ "${id}" != "0000" ]]; then
             PARALLEL_IDS+=("${id}")
@@ -417,9 +425,12 @@ if [[ ${#SELECTED[@]} -gt 0 ]]; then
     done
 else
     PARALLEL_IDS=()
+    RUN_9998=false
     RUN_9999=false
     for id in "${SUITES[@]}"; do
-        if [[ "${id}" == "9999" ]]; then
+        if [[ "${id}" == "9998" ]]; then
+            RUN_9998=true
+        elif [[ "${id}" == "9999" ]]; then
             RUN_9999=true
         elif [[ "${id}" != "0000" ]]; then
             PARALLEL_IDS+=("${id}")
@@ -486,6 +497,13 @@ if [[ "${OVERALL}" -eq 0 && ${#PARALLEL_IDS[@]} -gt 0 ]]; then
     else
         run_remaining_xargs
     fi
+fi
+
+if [[ "${RUN_9998}" == true ]]; then
+    if ! run_suite 9998; then
+        OVERALL=1
+    fi
+    RUN_IDS+=(9998)
 fi
 
 if [[ "${RUN_9999}" == true ]]; then
@@ -608,6 +626,12 @@ EOF
 
 printf '%s\n' "${DATA_ROWS}" >"${DATA_FILE}"
 tables "${LAYOUT_FILE}" "${DATA_FILE}"
+
+COVERAGE_TABLE="$(suite_log_dir 9998)/coverage.table"
+if [[ -s "${COVERAGE_TABLE}" ]]; then
+    echo
+    cat "${COVERAGE_TABLE}"
+fi
 
 CLOC_TABLE="$(suite_log_dir 9999)/cloc.table"
 if [[ -s "${CLOC_TABLE}" ]]; then
